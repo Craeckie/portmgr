@@ -1,9 +1,10 @@
 import os
 import sys
 # import docker
-import dckrjsn
+# import dckrjsn
 import argparse
 import importlib
+import yaml
 
 class MyParser(argparse.ArgumentParser):
     def error(self, message):
@@ -11,40 +12,50 @@ class MyParser(argparse.ArgumentParser):
         self.print_help()
         sys.exit(2)
 
-conf_name = 'dckrcnf.json'
-sub_name = 'dckrsub.json'
-conf_scheme_name = 'dckrcnf.schema.json'
-sub_scheme_name = 'dckrsub.schema.json'
+sub_name = 'dckrsub.yml'
+compose_name = 'docker-compose.yml'
+# sub_scheme_name = 'dckrsub.schema.yml'
 
 src_path = os.path.dirname(os.path.abspath(__file__))
-conf_scheme_path = os.path.join(src_path, sub_scheme_name)
-sub_scheme_path = os.path.join(src_path, sub_scheme_name)
+# conf_scheme_path = os.path.join(src_path, sub_scheme_name)
+# sub_scheme_path = os.path.join(src_path, sub_scheme_name)
 
-conf_scheme = dckrjsn.read_json(conf_scheme_path)
-sub_scheme = dckrjsn.read_json(sub_scheme_path)
+# conf_scheme = dckrjsn.read_json(conf_scheme_path)
+# sub_scheme = dckrjsn.read_json(sub_scheme_path)
 
 command_list = {}
 action_list = []
 
 def addCommand(cur_directory):
-    p_cnf = os.path.join(cur_directory, conf_name)
-    # cnf = dckrjsn.read_json(p_cnf, sch = conf_scheme)
-
+    relative_dir = os.path.relpath(cur_directory, base_directory)
     action_list.append({
-        'directory': cur_directory
+        'directory': cur_directory,
+        'relative' : relative_dir
     })
 
-def traverse(cur_directory):
-    sub_path = os.path.join(cur_directory, sub_name)
+def read_yaml(path):
+    with open(path, 'r') as stream:
+        try:
+            return yaml.load(stream)
+        except yaml.YAMLError as exc:
+            print(exc)
 
-    if os.path.exists(sub_path): # has sub folders
-        sub_folders = dckrjsn.read_json(sub_path, sch = sub_scheme)
+def traverse(cur_directory):
+    # print("Traversing in " + cur_directory)
+    sub_path = os.path.join(cur_directory, sub_name)
+    compose_path = os.path.join(cur_directory, compose_name)
+
+    # print("Checking file at " + sub_path)
+    if os.path.isfile(sub_path): # has sub folders
+        # print("Has sub folders!")
+        # sub_folders = dckrjsn.read_json(sub_path, sch = sub_scheme)
+        sub_folders = read_yaml(sub_path)
         for sub_folder in sub_folders:
-            if 'folder' in sub:
-                next_directory = os.path.join(cur_directory, sub['folder'])
-                traverse(next_directory)
-    else: # is a leaf
-        addCommand(p_cwd)
+            # print("Checking out " + sub_folder)
+            next_directory = os.path.join(cur_directory, sub_folder)
+            traverse(next_directory)
+    elif os.path.isfile(compose_path): # has a docker-compose file
+        addCommand(cur_directory)
 
 def main():
     # global cli
@@ -66,10 +77,10 @@ def main():
         action='store',
         default='',
         help='Set working directory')
-    parser.add_argument('-R',
-        dest='recursive',
-        action='store_true',
-        help='Use dckrsub.json files to recursively apply operations')
+    #parser.add_argument('-R',
+    #    dest='recursive',
+    #    action='store_true',
+    #    help='Use dckrsub.json files to recursively apply operations')
 
     for cmd in command_list.items():
         parser.add_argument('-' + cmd[0],
@@ -82,10 +93,10 @@ def main():
 
     base_directory = os.path.join(os.getcwd(), args.base_directory)
 
-    if args.recursive:
-        traverse(base_directory)
-    else:
-        addCommand(base_directory)
+    #if args.recursive:
+    traverse(base_directory)
+    #else:
+    #    addCommand(base_directory)
 
     for cmd in args.a_cmd: # loop over all passed arguments (t, r, c, s)
         cur_cmd = command_list[cmd]

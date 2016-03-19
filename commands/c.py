@@ -7,8 +7,9 @@ import os
 def func(action):
     # cnf = action['cnf']
     directory = action['directory']
+    relative = action['relative']
 
-    print('Created container in ' + directory)
+    print('Created container in ' + relative)
 
     #if res['Warnings'] != None:
     #    print('Warnings generated:')
