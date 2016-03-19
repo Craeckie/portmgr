@@ -1,13 +1,14 @@
-from dckrmgr import cli
-from dckrmgr import m_cmd
+# from dckrmgr import cli
+from dckrmgr import command_list
 
-def func(ctx):
-    cnf = ctx['cnf']
-    cli.remove_container(container = cnf['name'])
-    print('Removed ' + cnf['name'])
+def func(action):
+    # cnf = ctx['cnf']
+    directory = action['directory']
+    #cli.remove_container(container = cnf['name'])
+    print('Removed container in ' + directory)
     return 0
 
-m_cmd['r'] = {
+command_list['r'] = {
     'hlp': 'Remove container',
     'ord': 'rev',
     'fnc': func

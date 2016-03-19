@@ -1,13 +1,14 @@
-from dckrmgr import cli
-from dckrmgr import m_cmd
+# from dckrmgr import cli
+from dckrmgr import command_list
 
 def func(ctx):
-    cnf = ctx['cnf']
-    cli.stop(cnf['name'])
-    print('Stopped ' + cnf['name'])
+    # cnf = ctx['cnf']
+    directory = ctx['directory']
+    # cli.stop(cnf['name'])
+    print('Stopped container in ' + directory)
     return 0
 
-m_cmd['t'] = {
+command_list['t'] = {
     'hlp': 'Stop container',
     'ord': 'rev',
     'fnc': func

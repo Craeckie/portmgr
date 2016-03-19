@@ -1,10 +1,15 @@
 import os
 import sys
-import docker
+# import docker
 import dckrjsn
 import argparse
 import importlib
 
+class MyParser(argparse.ArgumentParser):
+    def error(self, message):
+        sys.stderr.write('Error: %s\n' % message)
+        self.print_help()
+        sys.exit(2)
 
 conf_name = 'dckrcnf.json'
 sub_name = 'dckrsub.json'
@@ -18,44 +23,44 @@ sub_scheme_path = os.path.join(src_path, sub_scheme_name)
 conf_scheme = dckrjsn.read_json(conf_scheme_path)
 sub_scheme = dckrjsn.read_json(sub_scheme_path)
 
-command_list = []
+command_list = {}
+action_list = []
 
-def addCommand(p_cwd):
-    p_cnf = os.path.join(p_cwd, conf_name)
-    cnf = dckrjsn.read_json(p_cnf, sch = conf_scheme)
+def addCommand(cur_directory):
+    p_cnf = os.path.join(cur_directory, conf_name)
+    # cnf = dckrjsn.read_json(p_cnf, sch = conf_scheme)
 
-    command_list.append({
-        'p_cwd': p_cwd,
-        'cnf': cnf
+    action_list.append({
+        'directory': cur_directory
     })
 
-def traverse(p_cwd):
-    p_sub = os.path.join(p_cwd, sub_name)
-    a_sub = dckrjsn.read_json(p_sub, sch = sub_scheme)
+def traverse(cur_directory):
+    sub_path = os.path.join(cur_directory, sub_name)
 
-    for sub in a_sub:
-        if 'folder' in sub:
-            p_cwd_nxt = os.path.join(p_cwd, sub['folder'])
-            traverse(p_cwd_nxt)
-        else:
-            addCommand(p_cwd)
+    if os.path.exists(sub_path): # has sub folders
+        sub_folders = dckrjsn.read_json(sub_path, sch = sub_scheme)
+        for sub_folder in sub_folders:
+            if 'folder' in sub:
+                next_directory = os.path.join(cur_directory, sub['folder'])
+                traverse(next_directory)
+    else: # is a leaf
+        addCommand(p_cwd)
 
 def main():
-    global cli
+    # global cli
     global base_directory
 
-    cli = docker.Client('unix://var/run/docker.sock')
+    # cli = docker.Client('unix://var/run/docker.sock')
 
     # Include external source files for commands
     # These fill the m_cmd list
-    m_cmd = {}
     for file in os.listdir(os.path.join(src_path, 'commands')):
         ext_file = os.path.splitext(file)
 
         if ext_file[1] == '.py' and not ext_file[0] == '__init__':
             importlib.import_module('commands.' + ext_file[0])
 
-    parser = argparse.ArgumentParser()
+    parser = MyParser()
     parser.add_argument('-D',
         dest='base_directory',
         action='store',
@@ -66,7 +71,7 @@ def main():
         action='store_true',
         help='Use dckrsub.json files to recursively apply operations')
 
-    for cmd in m_cmd.items():
+    for cmd in command_list.items():
         parser.add_argument('-' + cmd[0],
             dest='a_cmd',
             action='append_const',
@@ -82,19 +87,20 @@ def main():
     else:
         addCommand(base_directory)
 
-    for cmd in args.a_cmd:
-        cur_cmd = m_cmd[cmd];
+    for cmd in args.a_cmd: # loop over all passed arguments (t, r, c, s)
+        cur_cmd = command_list[cmd]
+        cmd_function = cur_cmd['fnc']
         cmd_order = cur_cmd['ord'];
+
         if cmd_order == 'nrm':
-            command_list_sorted = command_list
+            action_list_sorted = action_list
         elif cmd_order == 'rev':
-            command_list_sorted = reversed(command_list)
+            action_list_sorted = reversed(action_list)
         else:
             exit(1)
 
-        for command in command_list_sorted:
-            cmd_function = cur_cmd['fnc']
-            if cmd_function(command) != 0: # execute the function through reflection
+        for action in action_list_sorted:
+            if cmd_function(action) != 0: # execute the function through reflection
                 exit(1)
 
     exit(0)
