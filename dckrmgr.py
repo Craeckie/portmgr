@@ -1,6 +1,6 @@
 import os
 import sys
-# import docker
+import docker
 import dckrjsn
 import argparse
 import importlib
@@ -15,8 +15,8 @@ src_path = os.path.dirname(os.path.abspath(__file__))
 conf_scheme_path = os.path.join(src_path, sub_scheme_name)
 sub_scheme_path = os.path.join(src_path, sub_scheme_name)
 
-conf_scheme = dckrjsn.read_json(p_s_cnf)
-sub_scheme = dckrjsn.read_json(p_s_sub)
+conf_scheme = dckrjsn.read_json(conf_scheme_path)
+sub_scheme = dckrjsn.read_json(sub_scheme_path)
 
 command_list = []
 
@@ -39,12 +39,6 @@ def traverse(p_cwd):
             traverse(p_cwd_nxt)
         else:
             addCommand(p_cwd)
-
-def recursiveCtx():
-
-
-def directCtx():
-
 
 def main():
     global cli
