@@ -1,96 +1,106 @@
 import os
 import sys
-import docker
+# import docker
 import dckrjsn
 import argparse
 import importlib
 
-cli = None
 
-p_cwd_top = None
+conf_name = 'dckrcnf.json'
+sub_name = 'dckrsub.json'
+conf_scheme_name = 'dckrcnf.schema.json'
+sub_scheme_name = 'dckrsub.schema.json'
 
-n_cnf = 'dckrcnf.json'
-n_sub = 'dckrsub.json'
-n_s_cnf = 'dckrcnf.schema.json'
-n_s_sub = 'dckrsub.schema.json'
+src_path = os.path.dirname(os.path.abspath(__file__))
+conf_scheme_path = os.path.join(src_path, sub_scheme_name)
+sub_scheme_path = os.path.join(src_path, sub_scheme_name)
 
-p_src = os.path.dirname(os.path.abspath(__file__))
-p_s_cnf = os.path.join(p_src, n_s_cnf)
-p_s_sub = os.path.join(p_src, n_s_sub)
+conf_scheme = dckrjsn.read_json(p_s_cnf)
+sub_scheme = dckrjsn.read_json(p_s_sub)
 
-s_cnf = dckrjsn.read_json(p_s_cnf)
-s_sub = dckrjsn.read_json(p_s_sub)
+command_list = []
 
-m_cmd = {}
+def addCommand(p_cwd):
+    p_cnf = os.path.join(p_cwd, conf_name)
+    cnf = dckrjsn.read_json(p_cnf, sch = conf_scheme)
 
-def addCtx(p_cwd, a_ctx):
-    p_cnf = os.path.join(p_cwd, n_cnf)
-    cnf = dckrjsn.read_json(p_cnf, sch = s_cnf)
-
-    a_ctx.append({
+    command_list.append({
         'p_cwd': p_cwd,
         'cnf': cnf
     })
 
-def recursiveCtx_i(p_cwd, a_ctx):
-    p_sub = os.path.join(p_cwd, n_sub)
-    a_sub = dckrjsn.read_json(p_sub, sch = s_sub)
+def traverse(p_cwd):
+    p_sub = os.path.join(p_cwd, sub_name)
+    a_sub = dckrjsn.read_json(p_sub, sch = sub_scheme)
 
     for sub in a_sub:
         if 'folder' in sub:
             p_cwd_nxt = os.path.join(p_cwd, sub['folder'])
-            recursiveCtx_i(p_cwd_nxt, a_ctx)
+            traverse(p_cwd_nxt)
         else:
-            addCtx(p_cwd, a_ctx)
+            addCommand(p_cwd)
 
 def recursiveCtx():
-    a_ctx = []
-    recursiveCtx_i(p_cwd_top, a_ctx)
-    return a_ctx
+
 
 def directCtx():
-    a_ctx = []
-    addCtx(p_cwd_top, a_ctx)
-    return a_ctx
+
 
 def main():
     global cli
-    global p_cwd_top
+    global base_directory
 
     cli = docker.Client('unix://var/run/docker.sock')
 
-    for file in os.listdir(os.path.join(p_src, 'commands')):
+    # Include external source files for commands
+    # These fill the m_cmd list
+    m_cmd = {}
+    for file in os.listdir(os.path.join(src_path, 'commands')):
         ext_file = os.path.splitext(file)
 
         if ext_file[1] == '.py' and not ext_file[0] == '__init__':
             importlib.import_module('commands.' + ext_file[0])
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('-D', dest='p_cwd_top', action='store', default='', help='Set working directory')
-    parser.add_argument('-R', dest='rec', action='store_true', help='Use dckrsub.json files to recursively apply operations')
+    parser.add_argument('-D',
+        dest='base_directory',
+        action='store',
+        default='',
+        help='Set working directory')
+    parser.add_argument('-R',
+        dest='recursive',
+        action='store_true',
+        help='Use dckrsub.json files to recursively apply operations')
 
     for cmd in m_cmd.items():
-        parser.add_argument('-' + cmd[0], dest='a_cmd', action='append_const', const=cmd[0], help=cmd[1]['hlp'])
+        parser.add_argument('-' + cmd[0],
+            dest='a_cmd',
+            action='append_const',
+            const=cmd[0],
+            help=cmd[1]['hlp'])
 
     args = parser.parse_args()
 
-    p_cwd_top = os.path.join(os.getcwd(), args.p_cwd_top)
+    base_directory = os.path.join(os.getcwd(), args.base_directory)
 
-    if args.rec:
-        a_ctx = recursiveCtx()
+    if args.recursive:
+        traverse(base_directory)
     else:
-        a_ctx = directCtx()
+        addCommand(base_directory)
 
     for cmd in args.a_cmd:
-        if m_cmd[cmd]['ord'] == 'nrm':
-            i_ctx = a_ctx
-        elif m_cmd[cmd]['ord'] == 'rev':
-            i_ctx = reversed(a_ctx)
+        cur_cmd = m_cmd[cmd];
+        cmd_order = cur_cmd['ord'];
+        if cmd_order == 'nrm':
+            command_list_sorted = command_list
+        elif cmd_order == 'rev':
+            command_list_sorted = reversed(command_list)
         else:
             exit(1)
 
-        for ctx in i_ctx:
-            if m_cmd[cmd]['fnc'](ctx) != 0:
+        for command in command_list_sorted:
+            cmd_function = cur_cmd['fnc']
+            if cmd_function(command) != 0: # execute the function through reflection
                 exit(1)
 
     exit(0)
