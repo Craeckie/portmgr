@@ -23,6 +23,16 @@ src_path = os.path.dirname(os.path.abspath(__file__))
 # conf_scheme = dckrjsn.read_json(conf_scheme_path)
 # sub_scheme = dckrjsn.read_json(sub_scheme_path)
 
+class bcolors:
+    HEADER = '\033[95m'
+    OKBLUE = '\033[94m'
+    OKGREEN = '\033[92m'
+    WARNING = '\033[93m'
+    FAIL = '\033[91m'
+    ENDC = '\033[0m'
+    BOLD = '\033[1m'
+    UNDERLINE = '\033[4m'
+
 command_list = {}
 action_list = []
 
@@ -91,6 +101,10 @@ def main():
 
     args = parser.parse_args()
 
+    if len(sys.argv)==1:
+        parser.print_help()
+        sys.exit(1)
+
     base_directory = os.path.join(os.getcwd(), args.base_directory)
 
     #if args.recursive:
@@ -111,7 +125,11 @@ def main():
             exit(1)
 
         for action in action_list_sorted:
+            origWD = os.getcwd()
+            newWD = action['directory']
+            os.chdir(newWD)
             if cmd_function(action) != 0: # execute the function through reflection
                 exit(1)
+            os.chdir(origWD)
 
     exit(0)
