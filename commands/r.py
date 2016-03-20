@@ -6,7 +6,7 @@ def func(action):
     directory = action['directory']
     relative = action['relative']
 
-    p = subprocess.Popen(["docker-compose", "rm"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    p = subprocess.Popen(["docker-compose", "rm", "-f"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
     out, err = p.communicate()
 
