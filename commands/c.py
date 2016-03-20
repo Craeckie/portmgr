@@ -1,8 +1,6 @@
-# from dckrmgr import cli
-from dckrmgr import command_list, bcolors
+# from portmgr import cli
+from portmgr import command_list, bcolors
 import subprocess
-
-import os
 
 def func(action):
     # cnf = action['cnf']
@@ -10,7 +8,7 @@ def func(action):
     relative = action['relative']
 
     p = subprocess.Popen(["docker-compose", "create"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    #res = subprocess.run(["docker-compose", "create"], stdout=FNULL, stderr=subprocess.STDOUT)
+
     out, err = p.communicate()
 
     if p.returncode == 0:
