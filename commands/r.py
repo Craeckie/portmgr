@@ -1,4 +1,3 @@
-# from portmgr import cli
 from portmgr import command_list, bcolors
 import subprocess
 

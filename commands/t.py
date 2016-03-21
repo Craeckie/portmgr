@@ -1,9 +1,7 @@
-# from portmgr import cli
 from portmgr import command_list, bcolors
 import subprocess
 
 def func(action):
-    # cnf = ctx['cnf']
     directory = action['directory']
     relative = action['relative']
 
