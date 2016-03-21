@@ -8,6 +8,7 @@ def func(action):
     p = subprocess.Popen(["docker-compose", "rm", "-f"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
     out, err = p.communicate()
+    print(out.decode("UTF-8"))
 
     if p.returncode == 0:
         print('Removed container in ' + relative)
