@@ -38,6 +38,8 @@ action_list = []
 
 def addCommand(cur_directory):
     relative_dir = os.path.relpath(cur_directory, base_directory)
+    if relative_dir == '.':
+        relative_dir = os.path.basename(os.path.normpath(cur_directory))
     action_list.append({
         'directory': cur_directory,
         'relative' : relative_dir
