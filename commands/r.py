@@ -9,10 +9,11 @@ def func(action):
 
     out, err = p.communicate()
 
-    print(out.decode("UTF-8"))
+    if out != "":
+        print(out.decode("UTF-8"))
 
     if p.returncode == 0:
-        print('Removed container in ' + relative)
+        print('Removed ' + relative)
     else:
         print("Error removing " + relative + "!")
         print(bcolors.FAIL + err.decode("UTF-8") + bcolors.ENDC)

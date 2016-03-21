@@ -9,10 +9,11 @@ def func(action):
 
     out, err = p.communicate()
 
-    print(out.decode("UTF-8"))
+    if out != "":
+        print(out.decode("UTF-8"))
 
     if p.returncode == 0:
-        print('Created container in ' + relative)
+        print('Created ' + relative)
     else:
         print("Error creating " + relative + "!")
         print(bcolors.FAIL + err.decode("UTF-8") + bcolors.ENDC)
