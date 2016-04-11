@@ -5,6 +5,7 @@ import sys
 import argparse
 import importlib
 import yaml
+from time import sleep
 
 class MyParser(argparse.ArgumentParser):
     def error(self, message):
@@ -114,10 +115,15 @@ def main():
     #else:
     #    addCommand(base_directory)
 
-    for cmd in args.a_cmd: # loop over all passed arguments (t, r, c, s)
+    last_cmd = ''
+    for cmd in args.a_cmd: # loop over all passed arguments (t, r, u)
         cur_cmd = command_list[cmd]
         cmd_function = cur_cmd['fnc']
         cmd_order = cur_cmd['ord'];
+        
+        if last_cmd == 'r' and cur_cmd == 'u':
+          print("Waiting 3 seconds.. ")
+          sleep(3)
 
         if cmd_order == 'nrm':
             action_list_sorted = action_list
