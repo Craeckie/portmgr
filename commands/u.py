@@ -16,7 +16,8 @@ def func(action):
         print('Created ' + relative)
     else:
         print("Error creating " + relative + "!")
-        print(bcolors.FAIL + err.decode("UTF-8") + bcolors.ENDC)
+    
+    print(bcolors.FAIL + err.decode("UTF-8") + bcolors.ENDC)
 
     return 0
 

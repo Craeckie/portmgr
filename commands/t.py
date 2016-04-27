@@ -16,7 +16,8 @@ def func(action):
         print('Stopped ' + relative)
     else:
         print("Error stopping " + relative + "!")
-        print(bcolors.FAIL + err.decode("UTF-8") + bcolors.ENDC)
+    
+    print(bcolors.FAIL + err.decode("UTF-8") + bcolors.ENDC)
 
     return 0
 
