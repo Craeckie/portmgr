@@ -10,7 +10,7 @@ def func(action):
     out, err = p.communicate()
     
     if p.returncode == 0:
-      lines = out.split('\n')
+      lines = out.decode('utf8').split('\n')
       index = 0
       if lines.length > 1:
         # ask..
