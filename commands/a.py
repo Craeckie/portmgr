@@ -21,7 +21,7 @@ def func(action):
     # res = subprocess.call(["docker-compose", "logs", "--follow", "--tail=200"])
 
     # if res != 0:
-        print("Error showing logs for " + relative + "!\n")
+        # print("Error showing logs for " + relative + "!\n")
 
     return 0
 
