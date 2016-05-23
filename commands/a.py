@@ -10,13 +10,14 @@ def func(action):
     out, err = p.communicate()
     
     if p.returncode == 0:
-      lines = out.decode('utf8').split('\n')
+      lines = filter(None, out.decode('utf8').split('\n'))
       index = 0
       if len(lines) == 0:
         print("No containers found!")
         return 1
       elif len(lines) > 1:
         # ask..
+        print("Choose container:")
         index = 1
       container_id = lines[index]
       print("Attaching to " + container_id[:12])
