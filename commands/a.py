@@ -12,7 +12,7 @@ def func(action):
     if p.returncode == 0:
       lines = out.decode('utf8').split('\n')
       index = 0
-      if lines.length > 1:
+      if len(lines) > 1:
         # ask..
         index = 1
       container_id = lines[index]
