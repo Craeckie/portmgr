@@ -5,7 +5,7 @@ def func(action):
     directory = action['directory']
     relative = action['relative']
     
-    p = subprocess.Popen(["docker-compose", "ps", "-q"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    p = subprocess.Popen(["docker-compose", "ps"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
     out, err = p.communicate()
     
@@ -15,9 +15,11 @@ def func(action):
       containers = []
       for line in lines:
         if start:
-            parts = lines.split(' ')
-            containers += parts[0]
+          print("Line: " + line)
+          parts = line.split(' ')
+          containers += parts[0]
         elif line.startswith("----"):
+          print("Found start")
           start = True
       
       index = 0
