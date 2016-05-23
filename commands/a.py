@@ -17,7 +17,6 @@ def func(action):
         if start:
           parts = line.split(' ')
           containers.append(parts[0])
-          print(containers)
         elif line.startswith("----"):
           start = True
       
