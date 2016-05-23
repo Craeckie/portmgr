@@ -10,16 +10,25 @@ def func(action):
     out, err = p.communicate()
     
     if p.returncode == 0:
+      start = False
       lines = [x for x in out.decode('utf8').split('\n') if x]
+      containers = []
+      for line in lines:
+        if start:
+            parts = lines.split(' ')
+            containers += parts[0]
+        elif line.startswith("----"):
+          start = True
+      
       index = 0
-      if len(lines) == 0:
+      if len(containers) == 0:
         print("No containers found!")
         return 1
-      elif len(lines) > 1:
+      elif len(containers) > 1:
         # ask..
         print("Choose container:")
         index = 1
-      container_id = lines[index]
+      container_id = containers[index]
       print("Attaching to " + container_id[:12])
       subprocess.call(["docker", "exec", "-it", container_id, "bash"])
 
