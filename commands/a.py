@@ -12,11 +12,15 @@ def func(action):
     if p.returncode == 0:
       lines = out.decode('utf8').split('\n')
       index = 0
-      if len(lines) > 1:
+      if len(lines) == 0:
+        print("No containers found!")
+        return 1
+      elif len(lines) > 1:
         # ask..
         index = 1
       container_id = lines[index]
-      subprocess.call("docker-compose", "exec", "-it", container_id, "bash")
+      print("Attaching to " + container_id[:12])
+      subprocess.call(["docker-compose", "exec", "-it", container_id, "bash"])
 
     # res = subprocess.call(["docker-compose", "logs", "--follow", "--tail=200"])
 
