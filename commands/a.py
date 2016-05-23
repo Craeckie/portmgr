@@ -15,13 +15,10 @@ def func(action):
       containers = []
       for line in lines:
         if start:
-          print("Line: " + line)
           parts = line.split(' ')
-          print(parts)
           containers.append(parts[0])
           print(containers)
         elif line.startswith("----"):
-          print("Found start")
           start = True
       
       index = 0
@@ -33,7 +30,7 @@ def func(action):
         print("Choose container:")
         index = 1
       container_id = containers[index]
-      print("Attaching to " + container_id[:12])
+      print("Attaching to " + container_id)
       subprocess.call(["docker", "exec", "-it", container_id, "bash"])
 
     # res = subprocess.call(["docker-compose", "logs", "--follow", "--tail=200"])
