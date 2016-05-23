@@ -10,7 +10,7 @@ def func(action):
     out, err = p.communicate()
     
     if p.returncode == 0:
-      lines = filter(None, out.decode('utf8').split('\n'))
+      lines = [x for x in out.decode('utf8').split('\n') if x]
       index = 0
       if len(lines) == 0:
         print("No containers found!")
