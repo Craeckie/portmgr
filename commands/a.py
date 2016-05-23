@@ -17,7 +17,9 @@ def func(action):
         if start:
           print("Line: " + line)
           parts = line.split(' ')
+          print(parts)
           containers += parts[0]
+          print(containers)
         elif line.startswith("----"):
           print("Found start")
           start = True
