@@ -21,7 +21,7 @@ def func(action):
         index = 1
       container_id = lines[index]
       print("Attaching to " + container_id[:12])
-      subprocess.call(["docker-compose", "exec", "-it", container_id, "bash"])
+      subprocess.call(["docker", "exec", "-it", container_id, "bash"])
 
     # res = subprocess.call(["docker-compose", "logs", "--follow", "--tail=200"])
 
