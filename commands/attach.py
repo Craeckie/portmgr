@@ -40,6 +40,8 @@ def func(action):
               if index >= 0 and index < cont_count:
                 break
             except ValueError:
+              print("Please enter a number!")
+              pass
           print("Please enter a number between 0 and " + cont_count - 1 + "!")
                 
       container_id = containers[index]
