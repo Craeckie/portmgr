@@ -21,35 +21,27 @@ def func(action):
           start = True
       
       index = 0
-      if len(containers) == 0:
+      cont_count = len(containers)
+      if cont_count == 0:
         print("No containers found!")
         return 1
-      elif len(containers) > 1:
-        # ask..
-        print("Choose container:")
-        valid = {"yes": True, "y": True, "ye": True,
-             "no": False, "n": False}
-        if default is None:
-            prompt = " [y/n] "
-        elif default == "yes":
-            prompt = " [Y/n] "
-        elif default == "no":
-            prompt = " [y/N] "
-        else:
-            raise ValueError("invalid default answer: '%s'" % default)
-
-        while True:
-            sys.stdout.write(question + prompt)
-            choice = raw_input().lower()
-            if default is not None and choice == '':
-                return valid[default]
-            elif choice in valid:
-                return valid[choice]
-            else:
-                sys.stdout.write("Please respond with 'yes' or 'no' "
-                                 "(or 'y' or 'n').\n")
-                                 
+      elif cont_count > 1:
+        i = 0
+        for cont in containers:
+          print("(" + i + ") " + cont)
+        
         index = 1
+        while True:
+          print("Choose container:")
+          choice = raw_input().lower()
+          if choice:
+            try:
+              index = int(choice)
+              if index >= 0 and index < cont_count:
+                break
+            except ValueError:
+          print("Please enter a number between 0 and " + cont_count - 1 + "!")
+                
       container_id = containers[index]
       print("Attaching to " + container_id)
       subprocess.call(["docker", "exec", "-it", container_id, "bash"])
