@@ -32,8 +32,7 @@ def func(action):
         
         index = 1
         while True:
-          print("Choose container:")
-          choice = raw_input().lower()
+          choice = input("Choose container: ")
           if choice:
             try:
               index = int(choice)
