@@ -9,6 +9,8 @@ def func(action):
     directory = action['directory']
     relative = action['relative']
     
+    project = get_project('.')
+    
     containers = sorted(
         project.containers(stopped=False) +
         project.containers(one_off=OneOffFilter.only, stopped=False),
