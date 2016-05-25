@@ -29,7 +29,7 @@ def func(action):
         i = 0
         for cont in containers:
           print("(" + str(i) + ") " + cont)
-          i++
+          i += 1
         
         index = 1
         while True:
