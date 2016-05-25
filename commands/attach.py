@@ -28,7 +28,7 @@ def func(action):
       elif cont_count > 1:
         i = 0
         for cont in containers:
-          print("(" + i + ") " + cont)
+          print("(" + str(i) + ") " + cont)
         
         index = 1
         while True:
