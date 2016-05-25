@@ -21,13 +21,13 @@ def func(action):
       names.append(container.name)
       
     index = 0
-    cont_count = len(containers)
+    cont_count = len(names)
     if cont_count == 0:
       print("No containers found!")
       return 1
     elif cont_count > 1:
       i = 0
-      for cont in containers:
+      for cont in names:
         print("(" + str(i) + ") " + cont)
         i += 1
       
@@ -43,7 +43,7 @@ def func(action):
             pass
         print("Please enter a number between 0 and " + cont_count - 1 + "!")
               
-    container_id = containers[index]
+    container_id = names[index]
     print("Attaching to " + container_id)
     subprocess.call(["docker", "exec", "-it", container_id, "bash"])
 
