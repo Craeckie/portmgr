@@ -1,6 +1,7 @@
 from portmgr import command_list, bcolors
 import subprocess
 from compose.cli.command import get_project
+from compose import project
 from compose.project import OneOffFilter
 from operator import attrgetter
 
