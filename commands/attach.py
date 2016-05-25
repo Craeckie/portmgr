@@ -20,7 +20,7 @@ def func(action):
     for container in containers:
       names.append(container.name)
       
-    
+    index = 0
     cont_count = len(containers)
     if cont_count == 0:
       print("No containers found!")
@@ -31,7 +31,6 @@ def func(action):
         print("(" + str(i) + ") " + cont)
         i += 1
       
-      index = 1
       while True:
         choice = input("Choose container: ")
         if choice:
