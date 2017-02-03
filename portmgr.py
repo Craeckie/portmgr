@@ -96,7 +96,7 @@ def main():
     #    help='Use dckrsub.json files to recursively apply operations')
 
     for cmd in command_list.items():
-        parser.add_argument('-' + cmd[0],
+        parser.add_argument(cmd[0],
             dest='a_cmd',
             action='append_const',
             const=cmd[0],
