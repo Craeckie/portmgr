@@ -20,7 +20,7 @@ def func(action):
 
     return 0
 
-command_list['t'] = {
+command_list['s'] = {
     'hlp': 'Stop container',
     'ord': 'rev',
     'fnc': func

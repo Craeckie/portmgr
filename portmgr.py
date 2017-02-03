@@ -1,5 +1,4 @@
-import os
-import sys
+import os, sys
 # import docker
 # import dckrjsn
 import argparse
@@ -96,13 +95,16 @@ def main():
     #    help='Use dckrsub.json files to recursively apply operations')
 
     for cmd in command_list.items():
-        parser.add_argument(cmd[0],
+        parser.add_argument('-' + cmd[0],
             dest='a_cmd',
             action='append_const',
             const=cmd[0],
             help=cmd[1]['hlp'])
 
-    args = parser.parse_args()
+    argv = sys.argv[1:]
+    if len(argv) == 1 and not argv[0].startswith('-'):
+        argv[0] = '-' + argv[0]
+    args = parser.parse_args(argv)
 
     if len(sys.argv)==1:
         parser.print_help()
@@ -121,9 +123,9 @@ def main():
         cmd_function = cur_cmd['fnc']
         cmd_order = cur_cmd['ord'];
         
-        if last_cmd == 'r' and cur_cmd == 'u':
-          print("Waiting 3 seconds.. ")
-          sleep(3)
+#        if last_cmd == 'r' and cur_cmd == 'u':
+#          print("Waiting 3 seconds.. ")
+#          sleep(3)
 
         if cmd_order == 'nrm':
             action_list_sorted = action_list
