@@ -90,7 +90,7 @@ def main():
         ext_file = os.path.splitext(file)
 
         if ext_file[1] == '.py' and not ext_file[0] == '__init__':
-            importlib.import_module('commands.' + ext_file[0])
+            importlib.import_module('portmgr.commands.' + ext_file[0])
 
     parser = MyParser()
     parser.add_argument('-D',

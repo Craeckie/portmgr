@@ -1,18 +1,23 @@
-# from distutils.core import setup
-import setuptools
+from setuptools import setup, find_packages
 
-setuptools.setup(
+setup(
     name='portmgr',
-    version='1.0.0',
+    version='1.0.3',
     url="https://github.com/Craeckie/portmgr",
     description="Simple command interface to manage multiple Docker container",
-    packages=setuptools.find_packages(),
+    packages=find_packages(), #['portmgr'],
     license='Creative Commons Attribution-Noncommercial-Share Alike license',
     long_description=open('README.md').read(),
     long_description_content_type="text/markdown",
+    zip_safe=False,
 
     install_requires=[
         'docker-compose',
         'jsonschema'
-    ]
+    ],
+    entry_points = {
+        'console_scripts': [
+            'portmgr = portmgr:main'
+        ]
+    }
 )
