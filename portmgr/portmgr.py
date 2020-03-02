@@ -55,7 +55,7 @@ def addCommand(cur_directory):
 def read_yaml(path):
     with open(path, 'r') as stream:
         try:
-            return yaml.load(stream)
+            return yaml.load(stream, Loader=yaml.SafeLoader)
         except yaml.YAMLError as exc:
             print(exc)
 
