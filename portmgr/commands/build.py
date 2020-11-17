@@ -5,7 +5,13 @@ def func(action):
     directory = action['directory']
     relative = action['relative']
 
-    res = subprocess.call(['docker-compose', 'build', '--pull'])
+    res = subprocess.call(
+            ['docker-compose', 'build', '--pull'],
+            env={
+                'COMPOSE_DOCKER_CLI_BUILD': '1',
+                'DOCKER_BUILDKIT': '1'
+                },
+            )
 
     if res != 0:
         print("Error building " + relative + "!")

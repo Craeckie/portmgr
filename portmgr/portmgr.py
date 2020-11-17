@@ -147,7 +147,7 @@ def main():
             origWD = os.getcwd()
             newWD = action['directory']
             os.chdir(newWD)
-            print(f'-> {action["relative"]}')
+            print('-> ' + action["relative"])
             if cmd_function(action) != 0:  # execute the function through reflection
                 exit(1)
             os.chdir(origWD)
