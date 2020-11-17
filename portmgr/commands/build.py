@@ -10,7 +10,7 @@ def func(action):
     if res != 0:
         print("Error building " + relative + "!")
 
-    return 0
+    return res
 
 command_list['b'] = {
     'hlp': 'Build local image',
