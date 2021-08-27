@@ -12,7 +12,7 @@ def func(action):
 
     return 0
 
-command_list['ps'] = {
+command_list['c'] = {
     'hlp': 'List containers',
     'ord': 'nrm',
     'fnc': func

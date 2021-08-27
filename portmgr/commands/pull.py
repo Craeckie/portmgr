@@ -12,7 +12,7 @@ def func(action):
 
     return 0
 
-command_list['pu'] = {
+command_list['p'] = {
     'hlp': 'Pull image from repository',
     'ord': 'nrm',
     'fnc': func
