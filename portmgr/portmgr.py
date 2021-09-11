@@ -145,13 +145,19 @@ def main():
         else:
             exit(1)
 
+        failed_list = []
+
         for action in action_list_sorted:
             origWD = os.getcwd()
             newWD = action['directory']
             os.chdir(newWD)
             print('-> ' + action["relative"])
             if cmd_function(action) != 0:  # execute the function through reflection
-                exit(1)
+                failed_list.append(action)
             os.chdir(origWD)
+        if failed_list:
+            print('Failed containers:')
+            for action in failed_list:
+                print('- ' + action['relative'])
 
     exit(0)
