@@ -17,7 +17,7 @@ class MyParser(argparse.ArgumentParser):
 
 
 sub_name = 'dckrsub.yml'
-compose_name = 'docker-compose.yml'
+compose_names = ['docker-compose.yml', 'docker-compose.yaml']
 # sub_scheme_name = 'dckrsub.schema.yml'
 
 src_path = os.path.dirname(os.path.abspath(__file__))
@@ -65,7 +65,7 @@ def read_yaml(path):
 def traverse(cur_directory):
     # print("Traversing in " + cur_directory)
     sub_path = os.path.join(cur_directory, sub_name)
-    compose_path = os.path.join(cur_directory, compose_name)
+    compose_paths = [os.path.join(cur_directory, name) for name in compose_names]
 
     # print("Checking file at " + sub_path)
     if os.path.isfile(sub_path):  # has sub folders
@@ -76,7 +76,7 @@ def traverse(cur_directory):
             # print("Checking out " + sub_folder)
             next_directory = os.path.join(cur_directory, sub_folder)
             traverse(next_directory)
-    elif os.path.isfile(compose_path):  # has a docker-compose file
+    elif any(os.path.isfile(path) for path in compose_paths):  # has a docker-compose file
         addCommand(cur_directory)
 
 
