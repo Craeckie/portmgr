@@ -16,8 +16,9 @@ class MyParser(argparse.ArgumentParser):
         sys.exit(2)
 
 
-sub_name = 'dckrsub.yml'
-compose_names = ['docker-compose.yml', 'docker-compose.yaml']
+sub_name = os.environ.get('PORTMGR_SUB_NAME', 'dckrsub.yml')
+compose_names = [x.strip() for x in os.environ.get('PORTMGR_COMPOSE_NAME', 'docker-compose.yml, docker-compose.yaml').split(',')]
+
 # sub_scheme_name = 'dckrsub.schema.yml'
 
 src_path = os.path.dirname(os.path.abspath(__file__))
