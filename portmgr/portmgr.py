@@ -16,7 +16,7 @@ class MyParser(argparse.ArgumentParser):
         sys.exit(2)
 
 
-sub_name = [x.strip() for x in os.environ.get('PORTMGR_SUB_NAME', 'dckrsub.yml').split(',')]
+sub_names = [x.strip() for x in os.environ.get('PORTMGR_SUB_NAME', 'dckrsub.yml').split(',')]
 compose_names = [x.strip() for x in os.environ.get('PORTMGR_COMPOSE_NAME', 'docker-compose.yml, docker-compose.yaml').split(',')]
 
 # sub_scheme_name = 'dckrsub.schema.yml'
@@ -65,20 +65,21 @@ def read_yaml(path):
 
 def traverse(cur_directory):
     # print("Traversing in " + cur_directory)
-    sub_path = os.path.join(cur_directory, sub_name)
-    compose_paths = [os.path.join(cur_directory, name) for name in compose_names]
+    for sub_name in sub_names:
+        sub_path = os.path.join(cur_directory, sub_name)
+        compose_paths = [os.path.join(cur_directory, name) for name in compose_names]
 
-    # print("Checking file at " + sub_path)
-    if os.path.isfile(sub_path):  # has sub folders
-        # print("Has sub folders!")
-        # sub_folders = dckrjsn.read_json(sub_path, sch = sub_scheme)
-        sub_folders = read_yaml(sub_path)
-        for sub_folder in sub_folders:
-            # print("Checking out " + sub_folder)
-            next_directory = os.path.join(cur_directory, sub_folder)
-            traverse(next_directory)
-    elif any(os.path.isfile(path) for path in compose_paths):  # has a docker-compose file
-        addCommand(cur_directory)
+        # print("Checking file at " + sub_path)
+        if os.path.isfile(sub_path):  # has sub folders
+            # print("Has sub folders!")
+            # sub_folders = dckrjsn.read_json(sub_path, sch = sub_scheme)
+            sub_folders = read_yaml(sub_path)
+            for sub_folder in sub_folders:
+                # print("Checking out " + sub_folder)
+                next_directory = os.path.join(cur_directory, sub_folder)
+                traverse(next_directory)
+        elif any(os.path.isfile(path) for path in compose_paths):  # has a docker-compose file
+            addCommand(cur_directory)
 
 
 def main():
