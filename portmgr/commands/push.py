@@ -23,11 +23,11 @@ def func(action):
         print("Error pushing " + relative + "!")
         return res
 
-    res = subprocess.call(['docker', 'system', 'prune', '--all', '--force'])
+    # res = subprocess.call(['docker', 'system', 'prune', '--all', '--force'])
 
-    if res != 0:
-        print("Error pruning system!")
-        return res
+    # if res != 0:
+    #     print("Error pruning system!")
+    #     return res
 
     return res
 
