@@ -22,7 +22,7 @@ def func(action):
     for container in containers:
       image_name = container.image_config['RepoTags'][0]
       print(f'Scanning {image_name} of {container.service}')
-      scan_res = subprocess.run(['trivy', '-q', 'image', '-s', 'HIGH,CRITICAL', '--exit-code', '1', image_name], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+      scan_res = subprocess.run(['trivy', '-q', 'image', '-s', 'CRITICAL', '--exit-code', '1', image_name], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
       if scan_res.returncode != 0:
         print('Found vulnerabilites:')
         print(scan_res.stdout)
