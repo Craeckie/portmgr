@@ -20,7 +20,16 @@ def func(action):
     names = []
     res = 0
     for container in containers:
-      image_name = container.image_config['RepoDigests'][0]
+      repo_digests = container.image_config['RepoDigests']
+      if repo_digests:
+          image_name = repo_digests[0]
+      else:
+          repo_digests = container.image_config['RepoTags']
+      if repo_digests:
+          image_name = repo_digests[0]
+      else:
+          continue
+
       print(f'Scanning {image_name} of {container.service}')
       scan_res = subprocess.run(['trivy', '-q', 'image', '-s', 'CRITICAL', '--exit-code', '1', image_name], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
       if scan_res.returncode != 0:
