@@ -1,17 +1,33 @@
+from operator import attrgetter
 from portmgr import command_list, bcolors
 import subprocess
+from compose.cli.command import get_project
+from compose.project import OneOffFilter
+
 
 def func(action):
     directory = action['directory']
     relative = action['relative']
 
-    res = subprocess.call(
+    project = get_project('.')
+
+    containers = sorted(
+        project.containers() +
+        project.containers(one_off=OneOffFilter.only, stopped=False),
+        key=attrgetter('name'))
+
+    res = 0
+    for container in containers:
+        name = container.service
+        res = subprocess.call(
             ['docker-compose', 'build',
-                '--pull',
-                '--force-rm',
-                '--compress'
-            ]
-    )
+             '--pull',
+             '--force-rm',
+             '--compress',
+             name
+             ]
+        )
+        # res = subprocess.call(['docker', 'system', 'prune', '--all', '--force'])
 
     if res != 0:
         print("Error building " + relative + "!")
@@ -23,13 +39,8 @@ def func(action):
         print("Error pushing " + relative + "!")
         return res
 
-    # res = subprocess.call(['docker', 'system', 'prune', '--all', '--force'])
-
-    # if res != 0:
-    #     print("Error pruning system!")
-    #     return res
-
     return res
+
 
 command_list['r'] = {
     'hlp': 'build, push to registry & remove image',
