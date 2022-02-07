@@ -24,10 +24,14 @@ def func(action):
         memory = stats["memory_stats"]
         usage = format_size(memory['usage'])
         limit = format_size(memory['limit'])
-        network = stats["networks"]
-        received = format_size(sum(stats['rx_bytes'] for iface, stats in network.items()))
-        sent = format_size(sum(stats['tx_bytes'] for iface, stats in network.items()))
-        values.append((container.service, usage, limit, received, sent))
+        if 'networks' in stats:
+            network = stats["networks"]
+            received = format_size(sum(stats['rx_bytes'] for iface, stats in network.items()))
+            sent = format_size(sum(stats['tx_bytes'] for iface, stats in network.items()))
+            columns = (container.service, usage, limit, received, sent)
+        else:
+            columns = (container.service, usage, limit)
+        values.append(columns)
     print(tabulate(values,
                    headers=['Service', 'Mem Usage', 'Mem Limit', 'Net Recv', 'Net Sent'],
                    colalign=['left', 'right', 'right', 'right', 'right']))
