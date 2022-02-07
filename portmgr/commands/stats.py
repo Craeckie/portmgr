@@ -32,9 +32,10 @@ def func(action):
         else:
             columns = (container.service, usage, limit)
         values.append(columns)
-    print(tabulate(values,
-                   headers=['Service', 'Mem Usage', 'Mem Limit', 'Net Recv', 'Net Sent'],
-                   colalign=['left', 'right', 'right', 'right', 'right']))
+    if values:
+        print(tabulate(values,
+                       headers=['Service', 'Mem Usage', 'Mem Limit', 'Net Recv', 'Net Sent'],
+                       colalign=['left', 'right', 'right', 'right', 'right']))
 
     return 0
 
