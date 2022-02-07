@@ -17,7 +17,8 @@ class MyParser(argparse.ArgumentParser):
 
 
 sub_names = [x.strip() for x in os.environ.get('PORTMGR_SUB_NAME', 'dckrsub.yml').split(',')]
-compose_names = [x.strip() for x in os.environ.get('PORTMGR_COMPOSE_NAME', 'docker-compose.yml, docker-compose.yaml').split(',')]
+compose_names = [x.strip() for x in
+                 os.environ.get('PORTMGR_COMPOSE_NAME', 'docker-compose.yml, docker-compose.yaml').split(',')]
 
 # sub_scheme_name = 'dckrsub.schema.yml'
 
@@ -164,3 +165,7 @@ def main():
                 print('- ' + action['relative'])
 
     exit(0)
+
+
+if __name__ == '__main__':
+    main()
