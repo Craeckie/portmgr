@@ -14,7 +14,7 @@ def func(action):
     project = get_project('.')
 
     containers = sorted(
-        project.containers() +
+        project.containers(stopped=False) +
         project.containers(one_off=OneOffFilter.only, stopped=False),
         key=attrgetter('name'))
 
