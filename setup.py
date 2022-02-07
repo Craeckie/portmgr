@@ -13,7 +13,11 @@ setup(
 
     install_requires=[
         'docker-compose',
-        'jsonschema'
+        'jsonschema',
+        'tabulate',
+        'PyYAML',
+        'jsonschema',
+        'humanfriendly'
     ],
     entry_points = {
         'console_scripts': [
