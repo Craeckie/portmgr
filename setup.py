@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='portmgr',
-    version='1.4.1dev3',
+    version='1.4.2dev6',
     url="https://github.com/Craeckie/portmgr",
     description="Simple command interface to manage multiple Docker container",
     packages=find_packages(), #['portmgr'],

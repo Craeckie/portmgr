@@ -1,10 +1,12 @@
+from functools import cmp_to_key
+
 from portmgr import command_list
 from compose.cli.command import get_project
 from compose.project import OneOffFilter
 from operator import attrgetter
 
 from tabulate import tabulate
-from humanfriendly import format_size
+from humanfriendly import format_size, parse_size
 
 
 def func(action):
@@ -33,9 +35,12 @@ def func(action):
             columns = (container.service, usage, limit)
         values.append(columns)
     if values:
+        # sort by memory usage
+        values = sorted(values, key=cmp_to_key(lambda s1, s2: parse_size(s2[1]) - parse_size(s1[1])))
         print(tabulate(values,
                        headers=['Service', 'Mem Usage', 'Mem Limit', 'Net Recv', 'Net Sent'],
                        colalign=['left', 'right', 'right', 'right', 'right']))
+        print('')
 
     return 0
 
