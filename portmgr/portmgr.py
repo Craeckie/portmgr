@@ -5,6 +5,8 @@ import os, sys
 # import dckrjsn
 import argparse
 import importlib
+import re
+
 import yaml
 from time import sleep
 
@@ -16,7 +18,7 @@ class MyParser(argparse.ArgumentParser):
         sys.exit(2)
 
 
-sub_names = [x.strip() for x in os.environ.get('PORTMGR_SUB_NAME', 'dckrsub.yml').split(',')]
+sub_names = [x.strip() for x in re.split('[ ,;]+', os.environ.get('PORTMGR_SUB_NAME', 'dckrsub.yml'))]
 compose_names = [x.strip() for x in
                  os.environ.get('PORTMGR_COMPOSE_NAME', 'docker-compose.yml, docker-compose.yaml').split(',')]
 
