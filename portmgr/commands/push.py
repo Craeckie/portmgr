@@ -2,7 +2,6 @@ from operator import attrgetter
 from portmgr import command_list, bcolors
 import subprocess
 from compose.cli.command import get_project
-from compose.project import OneOffFilter
 
 
 def func(action):
@@ -11,14 +10,13 @@ def func(action):
 
     project = get_project('.')
 
-    containers = sorted(
-        project.containers(stopped=True) +
-        project.containers(one_off=OneOffFilter.only, stopped=False),
+    services = sorted(
+        [service for service in project.services if service.can_be_built()],
         key=attrgetter('name'))
 
     res = 0
-    for container in containers:
-        name = container.service
+    for service in services:
+        name = service.name
         res = subprocess.call(
             ['docker-compose', 'build',
              '--pull',
@@ -28,15 +26,13 @@ def func(action):
              ]
         )
         if res != 0:
-            print(f"Error building {container.name}!")
+            print(f"Error building {service.name}!")
             return res
         res = subprocess.call(['docker-compose', 'push', name])
         if res != 0:
-            print(f"Error pushing {container.name}!")
+            print(f"Error pushing {service.name}!")
             return res
         # res = subprocess.call(['docker', 'system', 'prune', '--all', '--force'])
-
-
 
     if res != 0:
         print("Error pushing " + relative + "!")
