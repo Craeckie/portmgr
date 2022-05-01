@@ -27,12 +27,13 @@ def func(action):
         )
         if res != 0:
             print(f"Error building {service.name}!")
+            #subprocess.call(['docker', 'system', 'prune', '--all', '--force'])
             return res
         res = subprocess.call(['docker-compose', 'push', name])
+        #subprocess.call(['docker', 'system', 'prune', '--all', '--force'])
         if res != 0:
             print(f"Error pushing {service.name}!")
             return res
-        # res = subprocess.call(['docker', 'system', 'prune', '--all', '--force'])
 
     if res != 0:
         print("Error pushing " + relative + "!")
