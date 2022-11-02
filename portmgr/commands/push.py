@@ -14,9 +14,13 @@ def func(action):
         [service for service in project.services if service.can_be_built()],
         key=attrgetter('name'))
 
+    print('Services to build: ' + ', '.join([s.name for s in services]))
+
     res = 0
     for service in services:
         name = service.name
+        print(f"Building {name}")
+
         res = subprocess.call(
             ['docker-compose', 'build',
              '--pull',
