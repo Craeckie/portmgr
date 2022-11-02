@@ -21,7 +21,7 @@ def func(action):
         name = service.name
         print(f"Building {name}")
 
-        res = subprocess.call(
+        new_res = subprocess.call(
             ['docker-compose', 'build',
              '--pull',
              '--force-rm',
@@ -29,23 +29,25 @@ def func(action):
              name
              ]
         )
-        if res != 0:
+        if new_res != 0:
+            res = new_res
             print(f"Error building {service.name}!")
             #subprocess.call(['docker', 'system', 'prune', '--all', '--force'])
-            return res
-        res = subprocess.call(
-                ['docker-compose', 'push',
-                 '--ignore-push-failures',
-                 name
-                 ]
+            #return res
+        new_res = subprocess.call(
+            ['docker-compose', 'push',
+             '--ignore-push-failures',
+             name
+             ]
         )
         #subprocess.call(['docker', 'system', 'prune', '--all', '--force'])
         if res != 0:
+            res = new_res
             print(f"Error pushing {service.name}!")
             return res
 
     if res != 0:
-        print("Error pushing " + relative + "!")
+        print("Error building&pushing " + relative + "!")
         return res
 
     return res
