@@ -1,11 +1,9 @@
-from portmgr import command_list
-import subprocess
-
+from portmgr import command_list, runCompose
 
 def func(action):
     relative = action['relative']
 
-    res = subprocess.call(["docker-compose", "top"])
+    res = runCompose(["top"])
 
     if res != 0:
         print("Error listing processes of containers in " + relative + "!\n")

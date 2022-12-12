@@ -1,11 +1,10 @@
-from portmgr import command_list, bcolors
-import subprocess
+from portmgr import command_list, bcolors, runCompose
 
 def func(action):
     directory = action['directory']
     relative = action['relative']
 
-    res = subprocess.call(["docker-compose", "stop"])
+    res = runCompose(["stop"])
     # p = subprocess.Popen(["docker-compose", "stop"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
      #out, err = p.communicate()

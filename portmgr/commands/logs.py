@@ -1,11 +1,11 @@
-from portmgr import command_list, bcolors
-import subprocess
+from portmgr import command_list, bcolors, runCompose
+
 
 def func(action):
     directory = action['directory']
     relative = action['relative']
 
-    res = subprocess.call(["docker-compose", "logs", "--follow", "--tail=200"])
+    res = runCompose(["logs", "--follow", "--tail=200"])
 
     if res != 0:
         print("Error showing logs for " + relative + "!\n")

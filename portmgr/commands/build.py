@@ -1,12 +1,12 @@
-from portmgr import command_list, bcolors
-import subprocess
+from portmgr import command_list, bcolors, runCompose
+
 
 def func(action):
     directory = action['directory']
     relative = action['relative']
 
-    res = subprocess.call(
-            ['docker-compose', 'build', '--pull'],
+    res = runCompose(
+            ['build', '--pull'],
             env={
                 'COMPOSE_DOCKER_CLI_BUILD': '1',
                 'DOCKER_BUILDKIT': '1'

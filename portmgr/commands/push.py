@@ -1,5 +1,5 @@
 from operator import attrgetter
-from portmgr import command_list, bcolors
+from portmgr import command_list, bcolors, runCompose
 import subprocess
 from compose.cli.command import get_project
 
@@ -21,8 +21,8 @@ def func(action):
         name = service.name
         print(f"\nBuilding {name}")
 
-        new_res = subprocess.call(
-            ['docker-compose', 'build',
+        new_res = runCompose(
+            ['build',
              '--pull',
              '--force-rm',
              '--compress',
@@ -34,8 +34,8 @@ def func(action):
             print(f"Error building {service.name}!")
             #subprocess.call(['docker', 'system', 'prune', '--all', '--force'])
         else:
-            new_res = subprocess.call(
-                ['docker-compose', 'push',
+            new_res = runCompose(
+                ['push',
                  '--ignore-push-failures',
                  name
                  ]
