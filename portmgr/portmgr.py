@@ -49,7 +49,7 @@ command_list = {}
 action_list = []
 
 
-def runCompose(*args, **kwargs):
+def runCompose(args, **kwargs):
     command = ["docker-compose"]
     if os.environ.get("PORTMGR_IN_SCRIPT", "").lower() == "true":
         command += ["--ansi", "never"]
