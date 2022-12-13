@@ -174,6 +174,7 @@ def main():
             print('Failed containers:')
             for action in failed_list:
                 print('- ' + action['relative'])
+            print("")
 
     exit(0)
 
