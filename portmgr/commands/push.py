@@ -1,49 +1,46 @@
 from operator import attrgetter
 from portmgr import command_list, bcolors, runCompose
 import subprocess
-from compose.cli.command import get_project
+import os
+
+from portmgr.wrapper import getServices
 
 
 def func(action):
     directory = action['directory']
     relative = action['relative']
 
-    project = get_project('.')
+    services = getServices(includeOnlyBuildable=True)
 
-    services = sorted(
-        [service for service in project.services if service.can_be_built()],
-        key=attrgetter('name'))
-
-    print('Services to build: ' + ', '.join([s.name for s in services]))
+    print('Services to build: ' + ', '.join(services))
 
     res = 0
-    for service in services:
-        name = service.name
-        print(f"\nBuilding {name}")
+    for service in services.keys():
+        print(f"\nBuilding {service}")
 
         new_res = runCompose(
             ['build',
              '--pull',
              '--force-rm',
              '--compress',
-             name
+             service
              ]
         )
         if new_res != 0:
             res = new_res
-            print(f"Error building {service.name}!")
-            #subprocess.call(['docker', 'system', 'prune', '--all', '--force'])
+            print(f"Error building {service}!")
         else:
             new_res = runCompose(
                 ['push',
                  '--ignore-push-failures',
-                 name
+                 service
                  ]
             )
-        #subprocess.call(['docker', 'system', 'prune', '--all', '--force'])
             if new_res != 0:
                 res = new_res
-                print(f"Error pushing {service.name}!")
+                print(f"Error pushing {service}!")
+        if os.environ.get("PORTMGR_CLEAN_AFTER_PUSH", "").lower() == "true":
+            subprocess.call(['docker', 'system', 'prune', '--all', '--force'])
 
     if res != 0:
         print("Error building&pushing " + relative + "!")

@@ -1,15 +1,11 @@
 #!/usr/bin/python3
-
 import os, sys
-# import docker
-# import dckrjsn
 import argparse
 import importlib
 import re
 from subprocess import call
 
 import yaml
-from time import sleep
 
 
 class MyParser(argparse.ArgumentParser):

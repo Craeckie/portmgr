@@ -1,25 +1,15 @@
 from portmgr import command_list, bcolors
 import subprocess
-from compose.cli.command import get_project
-from compose import project
-from compose.project import OneOffFilter
-from operator import attrgetter
+
+from portmgr.wrapper import getServicesRunning
+
 
 def func(action):
     directory = action['directory']
     relative = action['relative']
-    
-    project = get_project('.')
-    
-    containers = sorted(
-        project.containers(stopped=False) +
-        project.containers(one_off=OneOffFilter.only, stopped=False),
-        key=attrgetter('name'))
-        
-    names = []
-    for container in containers:
-      names.append(container.name)
-      
+
+    names = getServicesRunning()
+
     index = 0
     cont_count = len(names)
     if cont_count == 0:
