@@ -3,7 +3,6 @@ import os, sys
 import argparse
 import importlib
 import re
-from subprocess import call
 
 import yaml
 
@@ -43,14 +42,6 @@ class bcolors:
 
 command_list = {}
 action_list = []
-
-
-def runCompose(args, **kwargs):
-    command = ["docker compose"]
-    if os.environ.get("PORTMGR_IN_SCRIPT", "").lower() == "true":
-        command += ["--ansi", "never"]
-    command += list(args)
-    return call(command, **kwargs)
 
 
 def addCommand(cur_directory):
