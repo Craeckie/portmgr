@@ -4,7 +4,7 @@ from portmgr import runCompose
 
 
 def getServices(includeOnlyBuildable=False):
-    data = runCompose(['docker-compose', 'config', '--format', 'json'])
+    data = runCompose(['docker compose', 'config', '--format', 'json'])
     config = json.loads(data)
     services = config['services']
     if includeOnlyBuildable:
@@ -13,14 +13,14 @@ def getServices(includeOnlyBuildable=False):
 
 
 def getServicesRunning():
-    data = runCompose(['docker-compose', 'ps', '--format', 'json'])
+    data = runCompose(['docker compose', 'ps', '--format', 'json'])
     container_list = json.loads(data)
     container_names = [s['name'] for s in container_list]
     return container_names
 
 
 def getImages():
-    data = runCompose(['docker-compose', 'images', '--format', 'json'])
+    data = runCompose(['docker compose', 'images', '--format', 'json'])
     image_list = json.loads(data)
     images = [
         {'ID': image['ID'],
