@@ -1,12 +1,7 @@
 from portmgr import command_list
 import subprocess
-import json
-from compose.cli.command import get_project
-from compose.project import OneOffFilter
-from compose import project
-from operator import attrgetter
 
-from portmgr.wrapper import getServices, getImages
+from portmgr.wrapper import getImages
 
 
 def func(action):

@@ -1,4 +1,3 @@
-from operator import attrgetter
 from portmgr import command_list, bcolors, runCompose
 import subprocess
 import os

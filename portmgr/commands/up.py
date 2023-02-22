@@ -1,5 +1,4 @@
 from portmgr import command_list, bcolors, runCompose
-import subprocess
 
 def func(action):
     directory = action['directory']
