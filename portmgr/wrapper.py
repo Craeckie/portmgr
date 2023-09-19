@@ -14,7 +14,18 @@ def getServices(includeOnlyBuildable=False):
 
 def getServicesRunning():
     data = check_output(['sudo', 'docker', 'compose', 'ps', '--format', 'json'])
-    container_list = json.loads(data)
+    try:
+        lines = data.decode().splitlines()
+        if len(lines) > 1:
+            container_list = []
+            for l in :
+                #print(f'l: {l}')
+                container_list.append(json.loads(l.strip()))
+        else:
+            container_list = json.loads(data)
+    except Exception as e:
+        print(e)
+        print(data.decode())
     container_names = [s['Name'] for s in container_list]
     return container_names
 
