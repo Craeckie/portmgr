@@ -1,23 +1,7 @@
 # portmgr
-portmgr is a wrapper around docker-compose, which allows running typical commands on docker-compose.yml files recursively in multiple directories. Additionally, it shortens commands to a single letter each.
+portmgr is a wrapper around docker-compose, which allows running typical commands on docker-compose.yml files recursively in multiple directories. Additionally, it shortens commands to a single letter.
 
-Let's say you have organized your compose files like this:
-<pre>
-docker/
-├── reverse-proxy/
-│   └── docker-compose.yml
-├── public/
-│   └── blog/
-│       └── docker-compose.yml
-├── private/
-│   ├── nextcloud/
-│   │   └── docker-compose.yml
-│   └── gitlab/
-│       └── docker-compose.yml
-└── scripts
-</pre>
-
-You just add a `dckrsub.yml` in each parent folder like this:
+Let's say you have organized your compose files like this, you just add a `dckrsub.yml` in each parent folder:
 <pre>
 docker/
 ├── <b>dckrsub.yml</b>
@@ -38,18 +22,36 @@ For example, the `dckrsub.yml` in `docker/` might look like this:
 - reverse-proxy
 - storage
 ```
+
 And the `dckrsub.yml` in `docker/storage/` is like this:
 ```yaml
 - nextcloud
 - immich
 ```
-Now, if you run `portmgr u` in `docker/` it will decend into all the directories defined in each `dckrsub.yml` and run `docker compose up -d`.
 
+Now, if you run `portmgr u` in `docker/` it will decend into all the directories defined in each `dckrsub.yml` and run `docker compose up -d`. 
 
-### Prerequisites
-The easiest way ist through [pip3](https://pypi.python.org/pypi/pip) (Ubuntu: `apt-get install python3-pip`):
-* [docker-py](https://github.com/docker/docker-py): `pip3 install docker-py`
-* [jsonschema](https://pypi.python.org/pypi/jsonschema): `pip3 install jsonschema`
+portmgr starts from the current directory, so when running it in `docker/storage/`, it will run `docker compose` only in `nextcloud/` and `immich/`. You can also use it in a directory with a `docker-compose.yml` as a shortener for docker-compose commands.
+
+### Commands
+The following commands are available.  You can leave out the preceding `-` and combine multiple commands. 
+The respective docker-compose commands are in brackets.
+
+```
+  -u            Create and start containers (up)
+  -p            Pull images (pull)
+  -s            Stop services (stop)
+  -d            Stop and remove containers (down)
+  -l            Show container logs (logs)
+  -a            Run shell in container (exec -it <service> sh)
+  -b            Build images (build)
+  -c            List containers (ps)
+  -t            List processes in containers (top)
+  -r            Build and push to registry (build, push)
+  -v            Scan container images for vulnerabilities
+```
+
+For example `portmgr dul`, runs docker compose with `down`, `up` and `logs`, thus stopping, removing and starting all containers and then showing the logs.
 
 ### Installation
 ```
@@ -61,15 +63,4 @@ Or build it from source (here using the latest commit on master branch)
 sudo pip install https://github.com/Craeckie/portmgr.git
 ```
 
-### Commands
 
-```
-  -u            Create and start containers (up)
-  -p            Pull images (pull)
-  -s            Stop services (stop)
-  -d            Stop and remove containers (down)
-  -a            Run shell in container (exec -it <service> sh)
-  -b            Build images (build)
-  -c            List containers (ps)
-  -t            List processes in containers (top)
-```
