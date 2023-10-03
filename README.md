@@ -1,5 +1,5 @@
 # portmgr
-portmgr is a wrapper around [docker-compose](https://docs.docker.com/compose/) that allows running typical commands on docker-compose.yml files recursively in multiple directories. Additionally, it shortens commands to a single letter.
+portmgr is a wrapper around [docker-compose](https://docs.docker.com/compose/) that allows running typical docker-compose commands recursively. Additionally, it shortens commands to a single letter.
 
 Let's say you have organized your compose files like this, you just add a `dckrsub.yml` in each parent folder:
 <pre>
@@ -62,4 +62,5 @@ Or build it from source (here using the latest commit on master branch)
 sudo pip install https://github.com/Craeckie/portmgr.git
 ```
 
-
+### Tipps
+If you use portmgr a lot like me, you might want to shorten it to one letter. For bash, you can add `alias p='portmgr'` to ~/.bashrc. For fish-shell you can add `abbr p portmgr` to `~/.config/fish/config.fish`.
