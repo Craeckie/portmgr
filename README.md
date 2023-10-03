@@ -1,4 +1,51 @@
-# dckrmgr
+# portmgr
+portmgr is a wrapper around docker-compose, which allows running typical commands on docker-compose.yml files recursively in multiple directories. Additionally, it shortens commands to a single letter each.
+
+Let's say you have organized your compose files like this:
+<pre>
+docker/
+├── reverse-proxy/
+│   └── docker-compose.yml
+├── public/
+│   └── blog/
+│       └── docker-compose.yml
+├── private/
+│   ├── nextcloud/
+│   │   └── docker-compose.yml
+│   └── gitlab/
+│       └── docker-compose.yml
+└── scripts
+</pre>
+
+You just add a `dckrsub.yml` in each parent folder like this:
+<pre>
+docker/
+├── <b>dckrsub.yml</b>
+├── reverse-proxy/
+│   └── docker-compose.yml
+├── storage
+│   ├── <b>dckrsub.yml</b>
+│   ├── nextcloud/
+│   │   └── docker-compose.yml
+│   └── immich/
+│       └── docker-compose.yml
+└── scripts
+</pre>
+
+Each `dckrsub.yml` has a list of subdirectories, which portmgr should decend into.
+For example, the `dckrsub.yml` in `docker/` might look like this:
+```yaml
+- reverse-proxy
+- storage
+```
+And the `dckrsub.yml` in `docker/storage/` is like this:
+```yaml
+- nextcloud
+- immich
+```
+Now, if you run `portmgr u` in `docker/` it will decend into all the directories defined in each `dckrsub.yml` and run `docker compose up -d`.
+
+
 ### Prerequisites
 The easiest way ist through [pip3](https://pypi.python.org/pypi/pip) (Ubuntu: `apt-get install python3-pip`):
 * [docker-py](https://github.com/docker/docker-py): `pip3 install docker-py`
@@ -6,125 +53,23 @@ The easiest way ist through [pip3](https://pypi.python.org/pypi/pip) (Ubuntu: `a
 
 ### Installation
 ```
-git clone git@github.com:theascone/dckrmgr.git
-mkdir -p /usr/local/src/dckr
-mv dckrmgr/* /usr/local/src/dckr
-ln -s /usr/local/src/dckr/dckrmgr /usr/local/bin/dckrmgr
+sudo pip install portmgr
 ```
 
-### Usage
-
-#### Dckrcnf.json
-**Example:**
+Or build it from source (here using the latest commit on master branch)
 ```
-{
-    "name": "phabricator",
+sudo pip install https://github.com/Craeckie/portmgr.git
+```
 
-    "image": {
-        "name": "theascone/docker_phabricator",
-        "version": "latest"
-    },
-
-    "hostname": "phabricator.weiltoast.de",
-
-    "environment": [
-        {
-            "name": "MYSQL_USER",
-              "value": "phabricator"
-        },
-        {
-            "name": "MYSQL_PASS",
-            "value": "xyz"
-        }
-    ],
-    "volumes": [
-        {
-            "host_path": "var_log",
-            "container_path": "/var/log",
-            "mode": "rw"
-        },
-        {
-            "host_path": "/var/run/docker.sock",
-            "container_path": "/tmp/docker.sock",
-            "mode": "ro"
-        }
-    ],
-    "ports": [
-        {
-            "container_port": 22,
-            "host_port": 22
-        },
-        {
-            "container_port": 22280,
-            "host_port": 22280
-        }
-    ],
-    "links": [
-        {
-            "name": "mysql_phabricator",
-            "alias": "mysql"
-        }
-    ]
-}
+### Commands
 
 ```
-**Equivalents to Docker CLI:**
-<table>
-    <tr>
-        <td><b>Dckrcnf</b></td>
-        <td><b>Docker CLI</b></td>
-        <td><b>Comment</b></td>
-    </tr>
-    <tr>
-        <td>name</td>
-        <td>--name</td>
-    </tr>
-    <tr>
-      <td>
-      image(name, version)
-      </td>
-      <td>name:version</td>
-    </tr>
-    <tr>
-      <td>hostname</td>
-      <td>--hostname (-h)</td>
-    </tr>
-    <tr>
-      <td>environment[(name, value)]</td>
-      <td>--env (-e)</td>
-      <td>Json Array</td>
-    </tr>
-    <tr>
-      <td>volumes[(host_path, container_path, mode)]</td>
-      <td>--volume (-v) host_path:container_path:mode</td>
-      <td>host_path can be relative to location of dckrcnf.json</td>
-      <td>Json Array</td>
-    </tr>
-    <tr>
-      <td>ports[(container_port, host_port)]</td>
-      <td>--publish (-p) host_port:container_port</td>
-      <td>Json Array</td>
-    </tr>
-    <tr>
-      <td>links[(name, alias)]</td>
-      <td>--link name:alias</td>
-      <td>Json Array</td>
-    </tr>
-
-</table>
-
-
-### dckrmgr
-```
-dckrmgr [-h] [-D P_CWD_TOP] [-R] [-t] [-r] [-c] [-s]
-
-optional arguments:
-  -h, --help    show this help message and exit
-  -D P_CWD_TOP  Set working directory
-  -R            Use dckrsub.json files to recursively apply operations
-  -t            Stop container
-  -r            Remove container
-  -c            Create container
-  -s            Start container
-
+  -u            Create and start containers (up)
+  -p            Pull images (pull)
+  -s            Stop services (stop)
+  -d            Stop and remove containers (down)
+  -a            Run shell in container (exec -it <service> sh)
+  -b            Build images (build)
+  -c            List containers (ps)
+  -t            List processes in containers (top)
 ```
