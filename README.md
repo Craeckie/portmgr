@@ -29,7 +29,7 @@ And the `dckrsub.yml` in `docker/storage/` is like this:
 - immich
 ```
 
-Now, if you run `portmgr u` in `docker/` it will decend into `reverse-proxy`, `storage/nextcloud` and `storage/immich` and run `docker compose up -d`.
+Now, if you run `portmgr u` in `docker/` it will run `docker compose up -d` in `reverse-proxy`, `storage/nextcloud` and `storage/immich`.
 
 portmgr starts from the current directory, so when running it in `docker/storage/`, it will run `docker compose` only in `nextcloud/` and `immich/`. You can also use it in a directory with a `docker-compose.yml` as a shortener for docker-compose commands.
 
