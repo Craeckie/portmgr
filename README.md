@@ -23,7 +23,7 @@ For example, the `dckrsub.yml` in `docker/` might look like this:
 - storage
 ```
 
-And the `dckrsub.yml` in `docker/storage/` is like this:
+And the `dckrsub.yml` in `docker/storage/` like this:
 ```yaml
 - nextcloud
 - immich
