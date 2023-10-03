@@ -63,4 +63,4 @@ sudo pip install https://github.com/Craeckie/portmgr.git
 ```
 
 ### Tipps
-If you use portmgr a lot like me, you might want to shorten it to one letter. For bash, you can add `alias p='portmgr'` to ~/.bashrc. For fish-shell you can add `abbr p portmgr` to `~/.config/fish/config.fish`.
+If you use portmgr a lot like me, you might want to shorten it to one letter. For bash, you can add `alias p='portmgr'` to `~/.bashrc`. For fish-shell you can add `abbr p portmgr` to `~/.config/fish/config.fish`.
