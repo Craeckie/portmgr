@@ -18,7 +18,7 @@ def getServicesRunning():
         lines = data.decode().splitlines()
         if len(lines) > 1:
             container_list = []
-            for l in :
+            for l in lines:
                 #print(f'l: {l}')
                 container_list.append(json.loads(l.strip()))
         else:
@@ -26,7 +26,10 @@ def getServicesRunning():
     except Exception as e:
         print(e)
         print(data.decode())
-    container_names = [s['Name'] for s in container_list]
+    if isinstance(container_list, dict):
+        container_names = [container_list['Name']]
+    else:
+        container_names = [s['Name'] for s in container_list]
     return container_names
 
 
