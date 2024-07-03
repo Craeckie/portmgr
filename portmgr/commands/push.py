@@ -40,6 +40,7 @@ def func(action):
                 print(f"Error pushing {service}!")
         if os.environ.get("PORTMGR_CLEAN_AFTER_PUSH", "").lower() == "true":
             subprocess.call(['docker', 'system', 'prune', '--all', '--force'])
+            subprocess.call(['docker', 'buildx', 'prune', '--all', '--force'])
 
     if res != 0:
         print("Error building&pushing " + relative + "!")
