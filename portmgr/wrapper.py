@@ -4,7 +4,7 @@ from subprocess import call, check_output
 
 
 def getServices(includeOnlyBuildable=False):
-    data = check_output(['sudo', 'docker', 'compose', 'config', '--format', 'json'])
+    data = check_output(['docker', 'compose', 'config', '--format', 'json'])
     config = json.loads(data)
     services = config['services']
     if includeOnlyBuildable:
@@ -13,7 +13,7 @@ def getServices(includeOnlyBuildable=False):
 
 
 def getServicesRunning():
-    data = check_output(['sudo', 'docker', 'compose', 'ps', '--format', 'json'])
+    data = check_output(['docker', 'compose', 'ps', '--format', 'json'])
     try:
         lines = data.decode().splitlines()
         if len(lines) > 1:
@@ -34,7 +34,7 @@ def getServicesRunning():
 
 
 def getImages():
-    data = check_output(['sudo', 'docker', 'compose', 'images', '--format', 'json'])
+    data = check_output(['docker', 'compose', 'images', '--format', 'json'])
     image_list = json.loads(data)
     images = [
         {'ID': image['ID'],
@@ -48,14 +48,14 @@ def getImages():
 
 def getStats():
     containers = getServicesRunning()
-    data = check_output(['sudo', 'docker', 'stats', '--format', 'json', '--no-stream'] + containers, text=True).strip()
+    data = check_output(['docker', 'stats', '--format', 'json', '--no-stream'] + containers, text=True).strip()
     data_lines = data.split('\n')
     stats = [json.loads(line) for line in data_lines]
     return stats
 
 
 def runCompose(args, **kwargs):
-    command = ['sudo', 'docker', 'compose']
+    command = ['docker', 'compose']
     if os.environ.get("PORTMGR_IN_SCRIPT", "").lower() == "true":
         command += ["--ansi", "never"]
     command += list(args)
