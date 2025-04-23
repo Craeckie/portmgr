@@ -60,3 +60,8 @@ def runCompose(args, **kwargs):
         command += ["--ansi", "never"]
     command += list(args)
     return call(command, **kwargs)
+
+def runBuildx(args, **kwargs):
+    command = ['docker', 'buildx']
+    command += list(args)
+    return call(command, **kwargs)
