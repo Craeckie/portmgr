@@ -1,6 +1,6 @@
 import json
 import os
-from subprocess import call, check_output
+from subprocess import run, check_output
 
 
 def getServices(includeOnlyBuildable=False):
@@ -59,9 +59,9 @@ def runCompose(args, **kwargs):
     if os.environ.get("PORTMGR_IN_SCRIPT", "").lower() == "true":
         command += ["--ansi", "never"]
     command += list(args)
-    return call(command, **kwargs)
+    return run(command, **kwargs).returncode
 
 def runBuildx(args, **kwargs):
     command = ['docker', 'buildx']
     command += list(args)
-    return call(command, **kwargs)
+    return run(command, **kwargs).returncode
