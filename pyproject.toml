@@ -1,8 +1,9 @@
 [project]
 name = "portmgr"
-version = "0.1.0"
-description = "Add your description here"
+version = "1.8.0dev0"
+description = "Simple command interface to manage multiple Docker container"
 readme = "README.md"
+license = "Creative Commons Attribution-Noncommercial-Share Alike license"
 requires-python = ">=3.12"
 dependencies = [
     "humanfriendly~=10.0",
@@ -10,3 +11,8 @@ dependencies = [
     "pyyaml~=6.0.2",
     "tabulate~=0.8.9",
 ]
+[project.urls]
+Website = "https://github.com/Craeckie/portmgr"
+Repository = "https://github.com/Craeckie/portmgr.git"
+[project.scripts]
+portmgr = "portmgr:main"
