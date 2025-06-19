@@ -4,7 +4,7 @@ version = "1.8.0dev2"
 description = "Simple command interface to manage multiple Docker container"
 readme = "README.md"
 license = "MIT"
-requires-python = ">=3.12"
+requires-python = ">=3.11"
 dependencies = [
     "humanfriendly~=10.0",
     "jsonschema~=3.2.0",
