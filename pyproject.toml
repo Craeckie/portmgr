@@ -3,7 +3,7 @@ name = "portmgr"
 version = "1.8.0dev0"
 description = "Simple command interface to manage multiple Docker container"
 readme = "README.md"
-license = "Creative Commons Attribution-Noncommercial-Share Alike license"
+license = "MIT"
 requires-python = ">=3.12"
 dependencies = [
     "humanfriendly~=10.0",
