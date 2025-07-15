@@ -31,7 +31,7 @@ def func(action):
                 if new_res != 0:
                     res = new_res
                     print(f"Error building {service}!")
-            except TimeoutExpired:
+            except subprocess.TimeoutExpired:
                 print(f"Error building {service}! Build timed out.")
         else:
             try:
