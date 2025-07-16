@@ -53,7 +53,8 @@ def func(action):
                              service
                              ]
                             )
-                print(f"Error pushing {service}!")
+                    if new_res != 0:
+                        print(f"Error pushing {service}!")
             except TimeoutExpired:
                 print(f"Error building {service}! Build timed out.")
             if new_res != 1:
