@@ -42,6 +42,7 @@ class bcolors:
 
 command_list = {}
 action_list = []
+command_extra = []
 
 
 def addCommand(cur_directory):
@@ -115,13 +116,36 @@ def main():
                             help=cmd[1]['hlp'])
 
     argv = sys.argv[1:]
-    if len(argv) == 1 and not argv[0].startswith('-'):
-        argv[0] = '-' + argv[0]
-    args = parser.parse_args(argv)
+    # Convert bare command letters/strings to flag form so argparse can parse
+    # them (e.g. 'u' -> '-u', 'dul' -> '-dul', '-D /path m' -> '-D /path -m').
+    # Strings are only converted when every character is a registered command
+    # letter. The -D value is consumed first to avoid misidentifying it.
+    new_argv = []
+    i = 0
+    while i < len(argv):
+        arg = argv[i]
+        if arg == '-D':
+            new_argv.append(arg)
+            i += 1
+            if i < len(argv):
+                new_argv.append(argv[i])
+                i += 1
+        elif not arg.startswith('-') and arg and all(c in command_list for c in arg):
+            new_argv.append('-' + arg)
+            i += 1
+        else:
+            new_argv.append(arg)
+            i += 1
+    argv = new_argv
 
-    if len(sys.argv) == 1:
+    args, extra = parser.parse_known_args(argv)
+
+    if len(sys.argv) == 1 or not args.a_cmd:
         parser.print_help()
         sys.exit(1)
+
+    command_extra.clear()
+    command_extra.extend(extra)
 
     base_directory = os.path.join(os.getcwd(), args.base_directory)
 
@@ -154,7 +178,12 @@ def main():
             newWD = action['directory']
             os.chdir(newWD)
             print('-> ' + action["relative"])
-            if cmd_function(action) != 0:  # execute the function through reflection
+            try:
+                rc = cmd_function(action)
+            except Exception as exc:
+                print('Error: ' + str(exc))
+                rc = 1
+            if rc != 0:
                 failed_list.append(action)
             os.chdir(origWD)
         if failed_list:
@@ -162,6 +191,10 @@ def main():
             for action in failed_list:
                 print('- ' + action['relative'])
             print("")
+
+        fin = cur_cmd.get('fin')
+        if fin:
+            fin()
 
     exit(0)
 

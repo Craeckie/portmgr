@@ -48,6 +48,9 @@ The following commands are available. The respective docker-compose commands are
   t   List processes in containers (top)
   r   Build and push to registry (build, push)
   v   Scan container images for vulnerabilities
+  e   Encrypt/seal secret file(s) with age (requires portmgr[secrets])
+  x   Decrypt/unseal sealed secret files (requires portmgr[secrets])
+  m   Show secret migration status (requires portmgr[secrets])
 ```
 
 You combine multiple commands. For example `portmgr dul`, runs docker compose with `down`, `up` and `logs`, thus stopping, removing and starting all containers and then showing the logs.
@@ -61,6 +64,40 @@ Or build it from source (here using the latest commit on master branch)
 ```
 sudo pip install https://github.com/Craeckie/portmgr.git
 ```
+
+### Sealing secrets
+
+portmgr can encrypt secret-bearing files (`.env`, config files) with [age](https://age-encryption.org/) so they are safe to commit to git. Decryption happens once at setup time; the plaintext files remain on disk for Docker to use normally.
+
+**Requires the `secrets` extra:**
+```
+pip install portmgr[secrets]
+```
+
+**Seal a file** (run inside a service directory):
+```
+portmgr e .env
+```
+This creates `.env.age`, adds `.env` to the local `.gitignore`, and writes a `.migrated` marker. Commit the `.age` file and `.migrated`; never commit the plaintext.
+
+**Decrypt on a new server** (run from any ancestor directory):
+```
+portmgr x
+```
+Recurses via `dckrsub.yml` and decrypts every `*.age` whose plaintext is missing. Pass `--force` to overwrite existing plaintext from the sealed copy.
+
+**Check migration progress:**
+```
+portmgr m
+```
+Reports `DONE`, `PENDING`, `INCONSISTENT`, or `CLEAN` for each service and prints a summary tally.
+
+**Passphrase:** portmgr prompts once and caches the passphrase for the rest of the run. For non-interactive use (e.g. in scripts or provisioning), set:
+```
+PORTMGR_PASSPHRASE=<passphrase> portmgr x
+```
+
+After running `portmgr u`, a footer line is printed if any services have not yet been sealed.
 
 ### Tipps
 If you use portmgr a lot like me, you might want to shorten it to one letter. For bash, you can add `alias p='portmgr'` to `~/.bashrc`. For fish-shell you can add `abbr p portmgr` to `~/.config/fish/config.fish`.
