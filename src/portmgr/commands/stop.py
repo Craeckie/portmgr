@@ -1,7 +1,6 @@
-from portmgr import command_list, bcolors, runCompose
+from portmgr import command_list, runCompose
 
 def func(action):
-    directory = action['directory']
     relative = action['relative']
 
     res = runCompose(["stop"])

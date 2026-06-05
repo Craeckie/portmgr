@@ -1,5 +1,6 @@
 #!/usr/bin/python3
-import os, sys
+import os
+import sys
 import argparse
 import importlib
 import re
@@ -64,6 +65,33 @@ def read_yaml(path):
             print(exc)
 
 
+def normalize_argv(argv, commands):
+    """Convert bare command letters/strings to flag form so argparse can parse
+    them (e.g. 'u' -> '-u', 'dul' -> '-dul', '-D /path m' -> '-D /path -m').
+
+    Strings are only converted when every character is a registered command
+    letter. The -D value is consumed verbatim first to avoid misidentifying it.
+    `commands` is the command_list dict (membership-tested per character).
+    """
+    new_argv = []
+    i = 0
+    while i < len(argv):
+        arg = argv[i]
+        if arg == '-D':
+            new_argv.append(arg)
+            i += 1
+            if i < len(argv):
+                new_argv.append(argv[i])
+                i += 1
+        elif not arg.startswith('-') and arg and all(c in commands for c in arg):
+            new_argv.append('-' + arg)
+            i += 1
+        else:
+            new_argv.append(arg)
+            i += 1
+    return new_argv
+
+
 def traverse(cur_directory):
     # print("Traversing in " + cur_directory)
     for sub_name in sub_names:
@@ -115,28 +143,7 @@ def main():
                             const=cmd[0],
                             help=cmd[1]['hlp'])
 
-    argv = sys.argv[1:]
-    # Convert bare command letters/strings to flag form so argparse can parse
-    # them (e.g. 'u' -> '-u', 'dul' -> '-dul', '-D /path m' -> '-D /path -m').
-    # Strings are only converted when every character is a registered command
-    # letter. The -D value is consumed first to avoid misidentifying it.
-    new_argv = []
-    i = 0
-    while i < len(argv):
-        arg = argv[i]
-        if arg == '-D':
-            new_argv.append(arg)
-            i += 1
-            if i < len(argv):
-                new_argv.append(argv[i])
-                i += 1
-        elif not arg.startswith('-') and arg and all(c in command_list for c in arg):
-            new_argv.append('-' + arg)
-            i += 1
-        else:
-            new_argv.append(arg)
-            i += 1
-    argv = new_argv
+    argv = normalize_argv(sys.argv[1:], command_list)
 
     args, extra = parser.parse_known_args(argv)
 
@@ -154,11 +161,10 @@ def main():
     # else:
     #    addCommand(base_directory)
 
-    last_cmd = ''
     for cmd in args.a_cmd:  # loop over all passed arguments (t, r, u)
         cur_cmd = command_list[cmd]
         cmd_function = cur_cmd['fnc']
-        cmd_order = cur_cmd['ord'];
+        cmd_order = cur_cmd['ord']
 
         #        if last_cmd == 'r' and cur_cmd == 'u':
         #          print("Waiting 3 seconds.. ")

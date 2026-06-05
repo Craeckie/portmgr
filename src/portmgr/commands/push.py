@@ -1,4 +1,4 @@
-from portmgr import command_list, bcolors, runCompose, runBuildx
+from portmgr import command_list, runCompose, runBuildx
 import subprocess
 import os
 
@@ -6,7 +6,6 @@ from portmgr.wrapper import getServices
 
 
 def func(action):
-    directory = action['directory']
     relative = action['relative']
 
     services = getServices(includeOnlyBuildable=True)

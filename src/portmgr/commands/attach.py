@@ -1,13 +1,10 @@
-from portmgr import command_list, bcolors
+from portmgr import command_list
 import subprocess
 
 from portmgr.wrapper import getServicesRunning
 
 
 def func(action):
-    directory = action['directory']
-    relative = action['relative']
-
     names = getServicesRunning()
 
     index = 0
