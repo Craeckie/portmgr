@@ -48,5 +48,6 @@ def func(action):
 command_list['e'] = {
     'hlp': 'Encrypt/seal secret file(s) (age)',
     'ord': 'nrm',
-    'fnc': func
+    'fnc': func,
+    'standalone': True
 }
