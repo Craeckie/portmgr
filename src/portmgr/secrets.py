@@ -158,7 +158,7 @@ def write_migrated(directory):
 
 
 def service_status(directory):
-    from portmgr.portmgr import compose_names, read_yaml
+    from portmgr.portmgr import compose_names
 
     compose_path = None
     for name in compose_names:

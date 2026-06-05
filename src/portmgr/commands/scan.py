@@ -5,9 +5,6 @@ from portmgr.wrapper import getImages
 
 
 def func(action):
-    directory = action['directory']
-    relative = action['relative']
-
     images = getImages()
 
     res = 0

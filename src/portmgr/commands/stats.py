@@ -3,28 +3,23 @@ from functools import cmp_to_key
 from portmgr import command_list
 
 from tabulate import tabulate
-from humanfriendly import format_size, parse_size
+from humanfriendly import parse_size
 
 from portmgr.wrapper import getStats
 
 
 def func(action):
-    directory = action['directory']
-    relative = action['relative']
-
     stats_list = getStats()
 
     values = []
     has_network_stats = False
     for stats in stats_list:
-        name = stats['Name'] if 'Name' in stats else stats['Container']
         #memory = stats["memory_stats"]
         #usage = format_size(memory['usage'])
         #limit = format_size(memory['limit'])
         memory_string = stats["MemUsage"]
         usage, limit = [p.strip() for p in memory_string.split('/')]
         if 'NetIO' in stats:
-            network = stats["NetIO"]
             received, sent = [p.strip() for p in memory_string.split('/')]
             #received = format_size(sum(stats['rx_bytes'] for iface, stats in network.items()))
             #sent = format_size(sum(stats['tx_bytes'] for iface, stats in network.items()))

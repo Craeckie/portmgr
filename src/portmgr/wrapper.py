@@ -18,9 +18,9 @@ def getServicesRunning():
         lines = data.decode().splitlines()
         if len(lines) > 1:
             container_list = []
-            for l in lines:
-                #print(f'l: {l}')
-                container_list.append(json.loads(l.strip()))
+            for line in lines:
+                #print(f'l: {line}')
+                container_list.append(json.loads(line.strip()))
         else:
             container_list = json.loads(data)
     except Exception as e:
