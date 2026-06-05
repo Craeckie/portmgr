@@ -46,15 +46,19 @@ action_list = []
 command_extra = []
 
 
+def make_action(cur_directory):
+    relative_dir = os.path.relpath(cur_directory, base_directory)
+    if relative_dir == '.':
+        relative_dir = os.path.basename(os.path.normpath(cur_directory))
+    return {
+        'directory': cur_directory,
+        'relative': relative_dir
+    }
+
+
 def addCommand(cur_directory):
     if not any(action['directory'] == cur_directory for action in action_list):
-        relative_dir = os.path.relpath(cur_directory, base_directory)
-        if relative_dir == '.':
-            relative_dir = os.path.basename(os.path.normpath(cur_directory))
-        action_list.append({
-            'directory': cur_directory,
-            'relative': relative_dir
-        })
+        action_list.append(make_action(cur_directory))
 
 
 def read_yaml(path):
@@ -170,10 +174,16 @@ def main():
         #          print("Waiting 3 seconds.. ")
         #          sleep(3)
 
+        # Some commands (seal/unseal) act on files, not compose stacks, so they
+        # should still run in a directory that has no docker-compose.yml.
+        actions = action_list
+        if not actions and cur_cmd.get('standalone'):
+            actions = [make_action(base_directory)]
+
         if cmd_order == 'nrm':
-            action_list_sorted = action_list
+            action_list_sorted = actions
         elif cmd_order == 'rev':
-            action_list_sorted = reversed(action_list)
+            action_list_sorted = list(reversed(actions))
         else:
             exit(1)
 
