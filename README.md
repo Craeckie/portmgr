@@ -48,9 +48,10 @@ The following commands are available. The respective docker-compose commands are
   t   List processes in containers (top)
   r   Build and push to registry (build, push)
   v   Scan container images for vulnerabilities
-  e   Encrypt/seal secret file(s) with age (requires portmgr[secrets])
-  x   Decrypt/unseal sealed secret files (requires portmgr[secrets])
-  m   Show secret migration status (requires portmgr[secrets])
+  E   Encrypt/seal secret file(s) with age (requires portmgr[secrets])
+  D   Decrypt/unseal sealed secret files (requires portmgr[secrets])
+  S   Show secret migration status (requires portmgr[secrets])
+  R   Rotate postgres/mariadb passwords and write new values to .env
 ```
 
 You combine multiple commands. For example `portmgr dul`, runs docker compose with `down`, `up` and `logs`, thus stopping, removing and starting all containers and then showing the logs.
@@ -76,25 +77,31 @@ pip install portmgr[secrets]
 
 **Seal a file** (run inside a service directory):
 ```
-portmgr e .env
+portmgr E .env
 ```
 This creates `.env.age`, adds `.env` to the local `.gitignore`, and writes a `.migrated` marker. Commit the `.age` file and `.migrated`; never commit the plaintext.
 
 **Decrypt on a new server** (run from any ancestor directory):
 ```
-portmgr x
+portmgr D
 ```
 Recurses via `dckrsub.yml` and decrypts every `*.age` whose plaintext is missing. Pass `--force` to overwrite existing plaintext from the sealed copy.
 
 **Check migration progress:**
 ```
-portmgr m
+portmgr S
 ```
 Reports `DONE`, `PENDING`, `INCONSISTENT`, or `CLEAN` for each service and prints a summary tally.
 
+**Rotate database passwords:**
+```
+portmgr R
+```
+Finds postgres and mariadb services in each compose stack, generates a new random password, runs `ALTER USER` in the running container, and writes the new value(s) to `.env`. If a password was previously hardcoded in the compose file rather than referenced via `${VAR}`, a warning is printed reminding you to update the compose file to use the variable reference.
+
 **Passphrase:** portmgr prompts once and caches the passphrase for the rest of the run. For non-interactive use (e.g. in scripts or provisioning), set:
 ```
-PORTMGR_PASSPHRASE=<passphrase> portmgr x
+PORTMGR_PASSPHRASE=<passphrase> portmgr D
 ```
 
 After running `portmgr u`, a footer line is printed if any services have not yet been sealed.

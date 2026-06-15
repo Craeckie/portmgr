@@ -45,7 +45,7 @@ def fin():
         _counts[k] = 0
 
 
-command_list['m'] = {
+command_list['S'] = {
     'hlp': 'Show secret migration status',
     'ord': 'nrm',
     'fnc': func,

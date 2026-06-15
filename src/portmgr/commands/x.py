@@ -40,7 +40,7 @@ def func(action):
     return 0
 
 
-command_list['x'] = {
+command_list['D'] = {
     'hlp': 'Decrypt/unseal sealed secret files (age)',
     'ord': 'nrm',
     'fnc': func,

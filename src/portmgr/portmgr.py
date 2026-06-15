@@ -71,17 +71,17 @@ def read_yaml(path):
 
 def normalize_argv(argv, commands):
     """Convert bare command letters/strings to flag form so argparse can parse
-    them (e.g. 'u' -> '-u', 'dul' -> '-dul', '-D /path m' -> '-D /path -m').
+    them (e.g. 'u' -> '-u', 'dul' -> '-dul', '-B /path m' -> '-B /path -m').
 
     Strings are only converted when every character is a registered command
-    letter. The -D value is consumed verbatim first to avoid misidentifying it.
+    letter. The -B value is consumed verbatim first to avoid misidentifying it.
     `commands` is the command_list dict (membership-tested per character).
     """
     new_argv = []
     i = 0
     while i < len(argv):
         arg = argv[i]
-        if arg == '-D':
+        if arg == '-B':
             new_argv.append(arg)
             i += 1
             if i < len(argv):
@@ -130,7 +130,7 @@ def main():
             importlib.import_module('portmgr.commands.' + ext_file[0])
 
     parser = MyParser()
-    parser.add_argument('-D',
+    parser.add_argument('-B',
                         dest='base_directory',
                         action='store',
                         default='',
