@@ -57,7 +57,6 @@ def seal(path):
     with open(age_path, "wb") as fh:
         fh.write(encrypted)
     directory = os.path.dirname(path)
-    gitignore_append(directory, os.path.basename(path))
     write_migrated(directory)
 
 
@@ -135,20 +134,6 @@ def find_secret_keys(compose_path):
                 continue
             results.append((svc_name, key))
     return results
-
-
-def gitignore_append(directory, name):
-    path = os.path.join(directory, ".gitignore")
-    existing_lines = []
-    if os.path.isfile(path):
-        with open(path, "r") as fh:
-            existing_lines = fh.read().splitlines()
-    if name in existing_lines:
-        return
-    with open(path, "a") as fh:
-        if existing_lines and existing_lines[-1] != "":
-            fh.write("\n")
-        fh.write(name + "\n")
 
 
 def write_migrated(directory):
