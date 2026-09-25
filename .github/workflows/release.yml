@@ -66,8 +66,44 @@ jobs:
           name: dist
           path: dist/
 
+      # PyPI's trusted-publishing endpoint has outages of its own (502/503 while
+      # the rest of pypi.org is up); wait for it rather than failing the release.
+      - name: Wait for PyPI trusted publishing
+        run: |
+          for i in $(seq 1 30); do
+            code=$(curl -s -o /dev/null -w '%{http_code}' https://upload.pypi.org/_/oidc/audience)
+            [ "$code" = 200 ] && exit 0
+            echo "PyPI OIDC audience endpoint returned $code (check $i/30), retrying in 60s"
+            sleep 60
+          done
+          echo "::warning::PyPI OIDC endpoint still unavailable after 30 min, trying anyway"
+
       - name: Publish to PyPI
+        id: publish1
+        continue-on-error: true
         uses: pypa/gh-action-pypi-publish@release/v1
+
+      - name: Wait before retry
+        if: steps.publish1.outcome == 'failure'
+        run: sleep 120
+
+      - name: Publish to PyPI (retry 1)
+        id: publish2
+        if: steps.publish1.outcome == 'failure'
+        continue-on-error: true
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          skip-existing: true  # a failed attempt may have uploaded some files
+
+      - name: Wait before retry
+        if: steps.publish2.outcome == 'failure'
+        run: sleep 120
+
+      - name: Publish to PyPI (retry 2)
+        if: steps.publish2.outcome == 'failure'
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          skip-existing: true
 
       - name: Purge PyPI CDN cache
         run: |
