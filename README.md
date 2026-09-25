@@ -106,7 +106,7 @@ portmgr R
 ```
 Finds postgres and mariadb/mysql services in each compose stack, generates a new random password, runs `ALTER USER` in the running container, and writes the new value(s) to `.env`. For mariadb/mysql it uses the `mariadb` client, or `mysql` where that is the only one (e.g. `mysql/mysql-server`), and changes the password of every host entry of the account (`root@localhost` and `root@%` alike). The value goes into `.env` under the variable the compose file reads: `MYSQL_ROOT_PASSWORD: "${MYSQL_ROOT_PASS}"` updates `MYSQL_ROOT_PASS`. A value that mixes a reference with other text (`pre${X}`) is not rotated. If a password was previously hardcoded in the compose file rather than referenced via `${VAR}`, a warning is printed reminding you to update the compose file to use the variable reference.
 
-Every rotated password is printed as `NAME  old=…  new=…`, also when only part of a service could be rotated, so you can replace the old value wherever else it is configured. The output contains the passwords in clear text; keep it out of logs you share. Re-seal `.env` with `portmgr E .env` afterwards if you keep a `.env.age`.
+Every rotated password is printed under its `.env` name, with the old and the new value each on its own `old:` / `new:` line, also when only part of a service could be rotated, so you can replace the old value wherever else it is configured. The output contains the passwords in clear text; keep it out of logs you share. Re-seal `.env` with `portmgr E .env` afterwards if you keep a `.env.age`.
 
 **Passphrase:** portmgr prompts once and caches the passphrase for the rest of the run. For non-interactive use (e.g. in scripts or provisioning), set:
 ```

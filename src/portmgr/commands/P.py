@@ -123,7 +123,7 @@ def _rotate_postgres(directory, svc_name, env, new_password):
     sql = f"ALTER USER {user} WITH PASSWORD '{new_pass}';"
     result = _exec(directory, svc_name, ['psql', '-U', user, '-d', 'postgres', '-c', sql])
     if result.returncode != 0:
-        return [], f'psql failed ({_failure(result)}); attempted new={new_pass}'
+        return [], f'psql failed ({_failure(result)}); attempted new password: {new_pass}'
 
     return ['POSTGRES_PASSWORD'], None
 
@@ -153,7 +153,7 @@ def _mariadb_alter(directory, svc_name, client, root_pass, user, new_pass):
                       for h in hosts)
     result = _exec(directory, svc_name, base + [f"ALTER USER {specs}; FLUSH PRIVILEGES;"])
     if result.returncode != 0:
-        return f'ALTER USER {user} failed ({_failure(result)}); attempted new={new_pass}'
+        return f'ALTER USER {user} failed ({_failure(result)}); attempted new password: {new_pass}'
     return None
 
 
@@ -241,7 +241,9 @@ def func(action):
             name, is_ref = names[key]
             new = by_name[name]
             all_updates[name] = new
-            print(f'  {relative}/{svc_name}: {name}  old={env[key]}  new={new}')
+            # One password per line, alone after the label, so it doesn't wrap
+            # and a double-click selects exactly the password.
+            print(f'  {relative}/{svc_name}: {name}\n    old: {env[key]}\n    new: {new}')
             if name not in current_dotenv_keys:
                 if is_ref:
                     print(f'  {relative}/{svc_name}: NOTE — {name} was not in .env before '

@@ -172,8 +172,8 @@ def test_old_and_new_passwords_are_printed(tmp_path, monkeypatch, capsys):
     FakeCompose(monkeypatch, INTBOOKS_RAW, INTBOOKS_RESOLVED, mysql_server())
     env = rotate(tmp_path, "MYSQL_PASS=oldapp\nMYSQL_ROOT_PASS=oldroot\n")
     out = capsys.readouterr().out
-    assert f"MYSQL_ROOT_PASS  old=oldroot  new={env['MYSQL_ROOT_PASS']}" in out
-    assert f"MYSQL_PASS  old=oldapp  new={env['MYSQL_PASS']}" in out
+    assert f"MYSQL_ROOT_PASS\n    old: oldroot\n    new: {env['MYSQL_ROOT_PASS']}\n" in out
+    assert f"MYSQL_PASS\n    old: oldapp\n    new: {env['MYSQL_PASS']}\n" in out
 
 
 def test_partial_success_prints_and_writes_the_root_change(tmp_path, monkeypatch, capsys):
@@ -182,7 +182,7 @@ def test_partial_success_prints_and_writes_the_root_change(tmp_path, monkeypatch
     env = rotate(tmp_path, "MYSQL_PASS=oldapp\nMYSQL_ROOT_PASS=oldroot\n")
     out = capsys.readouterr().out
     assert env["MYSQL_PASS"] == "oldapp"
-    assert f"MYSQL_ROOT_PASS  old=oldroot  new={env['MYSQL_ROOT_PASS']}" in out
+    assert f"MYSQL_ROOT_PASS\n    old: oldroot\n    new: {env['MYSQL_ROOT_PASS']}\n" in out
     assert "Access denied" in out
     # The app-user step logs in with the new root password.
     app_step = [c for _, c in fake.execs if "'intbooks'@" in c[-1]][0]
@@ -216,5 +216,5 @@ def test_postgres_resolves_name_and_prints_old_and_new(tmp_path, monkeypatch, ca
     fake = FakeCompose(monkeypatch, raw, resolved, lambda svc, cmd: (0, "ALTER ROLE\n", ""))
     env = rotate(tmp_path, "DB_PASS=oldpg\n")
     assert set(env) == {"DB_PASS"}
-    assert f"DB_PASS  old=oldpg  new={env['DB_PASS']}" in capsys.readouterr().out
+    assert f"DB_PASS\n    old: oldpg\n    new: {env['DB_PASS']}\n" in capsys.readouterr().out
     assert fake.execs[0][1][0] == "psql"
