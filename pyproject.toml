@@ -1,6 +1,6 @@
 [project]
 name = "portmgr"
-version = "1.10.0"
+version = "1.10.1"
 description = "Simple command interface to manage multiple Docker container"
 readme = "README.md"
 license = "MIT"
