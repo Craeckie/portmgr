@@ -51,6 +51,7 @@ The following commands are available. The respective docker-compose commands are
   E   Encrypt/seal secret file(s) with age (requires portmgr[secrets])
   D   Decrypt/unseal sealed secret files (requires portmgr[secrets])
   S   Show secret migration status (requires portmgr[secrets])
+  M   Move literal environment values from the compose file into .env
   R   Rotate postgres/mariadb passwords and write new values to .env
 ```
 
@@ -74,6 +75,12 @@ portmgr can encrypt secret-bearing files (`.env`, config files) with [age](https
 ```
 pip install portmgr[secrets]
 ```
+
+**Move secrets out of the compose file first** (run inside a service directory, or above it to go through every stack):
+```
+portmgr M
+```
+Lists each literal `environment:` value with secret-looking keys (password, token, key, …) preselected, asks which to move, previews the result and asks for confirmation. Each chosen value is appended to `.env` (created with mode 600 if missing) and replaced in the compose file with `"${NAME}"`; nothing else in the compose file changes, comments included. `NAME` is the key itself, or `<SERVICE>_<KEY>` when that name is already used with another value, is referenced elsewhere in the file, or is set in your shell (which would override `.env`). Values that already reference a variable, span several lines, use YAML anchors or tags, or that compose would re-type (`True`, `0o17`, `1.50`, …; quote them to move them) are left alone with a note. Then seal `.env` as below and commit the compose file.
 
 **Seal a file** (run inside a service directory):
 ```

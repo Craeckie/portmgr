@@ -6,6 +6,10 @@ import yaml
 
 _passphrase = None
 
+SECRET_KEY_PATTERN = re.compile(
+    r"(?i)(PASS(WORD)?|SECRET|TOKEN|KEY|AUTHKEY|APIKEY|CREDENTIAL)"
+)
+
 
 def _load_pyrage():
     try:
@@ -102,9 +106,6 @@ def find_secret_keys(compose_path):
     if not isinstance(doc, dict):
         return []
     services = doc.get("services") or {}
-    pattern = re.compile(
-        r"(?i)(PASS(WORD)?|SECRET|TOKEN|KEY|AUTHKEY|APIKEY|CREDENTIAL)"
-    )
     ref_pattern = re.compile(r"^\$\{[^}]+\}$|^\$[A-Za-z_][A-Za-z0-9_]*$")
     results = []
     for svc_name, svc in services.items():
@@ -126,7 +127,7 @@ def find_secret_keys(compose_path):
         else:
             continue
         for key, value in items:
-            if not pattern.search(key):
+            if not SECRET_KEY_PATTERN.search(key):
                 continue
             if value is None or value == "":
                 continue

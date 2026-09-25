@@ -24,7 +24,12 @@ uv publish                 # upload to PyPI
 ./release.sh
 ```
 
-There are no tests and no linter configured.
+```bash
+uv run pytest              # tests/
+uv run ruff check src tests
+```
+
+`tests/test_envmove_compose.py` checks `M` against real `docker compose config` and is skipped when no compose binary is found (`docker compose`, a standalone `docker-compose` on `PATH`, or one named in `PORTMGR_TEST_COMPOSE`). `config` needs no Docker daemon, so the standalone binary from the docker/compose GitHub releases is enough.
 
 ## Architecture
 
@@ -33,6 +38,8 @@ src/portmgr/
   portmgr.py       # entry point & CLI: traverses the directory tree, loads commands, dispatches
   wrapper.py       # thin helpers around `docker compose` / `docker buildx` subprocesses
   __init__.py      # re-exports main, command_list, bcolors, runCompose, runBuildx
+  secrets.py       # age seal/unseal and secret detection behind E/D/S
+  envmove.py       # pure logic behind M: find literal env values, pick .env names, rewrite compose text in place
   commands/        # one file per command letter; each registers itself in command_list
 ```
 
@@ -46,7 +53,7 @@ command_list['u'] = {'hlp': '...', 'ord': 'nrm', 'fnc': func}
 
 `ord` is `'nrm'` (normal traversal order) or `'rev'` (reversed — used by `down`/`stop` so dependent stacks shut down safely).
 
-Secret-related commands use uppercase letters (`E`, `D`, `S`, `R`) to visually distinguish them from regular docker-compose wrappers.
+Secret-related commands use uppercase letters (`E`, `D`, `S`, `R`, `M`) to visually distinguish them from regular docker-compose wrappers.
 
 ### Directory traversal
 
