@@ -91,7 +91,7 @@ Recurses via `dckrsub.yml` and decrypts every `*.age` whose plaintext is missing
 ```
 portmgr S
 ```
-Reports `DONE`, `PENDING`, `INCONSISTENT`, or `CLEAN` for each service and prints a summary tally.
+Reports `DONE`, `PENDING`, or `CLEAN` for each service and prints a summary tally. A `.migrated` marker always means `DONE`, even if the compose file still contains what looks like a secret — create it by hand for services that need no sealing. `CLEAN` only means nothing was *detected*; `portmgr u`'s footer still counts a `CLEAN` service as unsealed until it has a `.migrated`.
 
 **Rotate database passwords:**
 ```

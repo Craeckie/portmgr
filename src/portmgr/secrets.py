@@ -145,6 +145,9 @@ def write_migrated(directory):
 def service_status(directory):
     from portmgr.portmgr import compose_names
 
+    if os.path.isfile(os.path.join(directory, ".migrated")):
+        return ("DONE", [])
+
     compose_path = None
     for name in compose_names:
         candidate = os.path.join(directory, name)
@@ -152,14 +155,9 @@ def service_status(directory):
             compose_path = candidate
             break
 
-    migrated = os.path.isfile(os.path.join(directory, ".migrated"))
     secret_keys = find_secret_keys(compose_path) if compose_path else []
 
-    if migrated and not secret_keys:
-        return ("DONE", [])
-    elif migrated and secret_keys:
-        return ("INCONSISTENT", secret_keys)
-    elif not migrated and secret_keys:
+    if secret_keys:
         return ("PENDING", secret_keys)
     else:
         return ("CLEAN", [])

@@ -21,6 +21,8 @@ def func(action):
     try:
         _total_count[0] += 1
         state, _ = secrets.service_status(directory)
+        # CLEAN counts as unsealed on purpose: the secret-key regex has false
+        # negatives, so "nothing detected" isn't the same guarantee as ".migrated".
         if state != 'DONE':
             _unsealed_count[0] += 1
     except Exception:

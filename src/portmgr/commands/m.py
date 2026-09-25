@@ -1,13 +1,12 @@
 from portmgr import command_list, bcolors
 from portmgr import secrets
 
-_counts = {'DONE': 0, 'INCONSISTENT': 0, 'PENDING': 0, 'CLEAN': 0}
+_counts = {'DONE': 0, 'PENDING': 0, 'CLEAN': 0}
 
 _STATE_COLOR = {
-    'DONE':         bcolors.OKGREEN,
-    'INCONSISTENT': bcolors.WARNING,
-    'PENDING':      bcolors.FAIL,
-    'CLEAN':        bcolors.OKBLUE,
+    'DONE':    bcolors.OKGREEN,
+    'PENDING': bcolors.FAIL,
+    'CLEAN':   bcolors.OKBLUE,
 }
 
 
@@ -38,7 +37,6 @@ def fin():
     print(
         f"\n{done}/{total} services sealed  "
         f"({_counts['PENDING']} pending, "
-        f"{_counts['INCONSISTENT']} inconsistent, "
         f"{_counts['CLEAN']} clean)"
     )
     for k in _counts:

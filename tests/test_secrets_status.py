@@ -29,7 +29,7 @@ def compose_without_secret(tmp_path):
     """))
 
 
-# --- service_status: the four states -------------------------------------
+# --- service_status: the three states -------------------------------------
 
 def test_status_done(tmp_path):
     compose_without_secret(tmp_path)
@@ -39,12 +39,12 @@ def test_status_done(tmp_path):
     assert keys == []
 
 
-def test_status_inconsistent(tmp_path):
+def test_status_migrated_with_secret_keys_is_done(tmp_path):
     compose_with_secret(tmp_path)
     secrets.write_migrated(str(tmp_path))
     state, keys = secrets.service_status(str(tmp_path))
-    assert state == "INCONSISTENT"
-    assert keys == [("web", "DB_PASSWORD")]
+    assert state == "DONE"
+    assert keys == []
 
 
 def test_status_pending(tmp_path):
