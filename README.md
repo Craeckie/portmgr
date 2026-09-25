@@ -86,7 +86,7 @@ Lists each literal `environment:` value with secret-looking keys (password, toke
 ```
 portmgr E .env
 ```
-This creates `.env.age`, adds `.env` to the local `.gitignore`, and writes a `.migrated` marker. Commit the `.age` file and `.migrated`; never commit the plaintext.
+This creates `.env.age` and writes a `.migrated` marker. Commit the `.age` file and `.migrated`; never commit the plaintext — `E` does not touch `.gitignore`, so make sure `.env` is ignored yourself.
 
 **Decrypt on a new server** (run from any ancestor directory):
 ```
