@@ -17,6 +17,15 @@ uv run portmgr             # run from source
 
 ## Build & publish
 
+**Releasing is a version bump.** In one commit, bump `version` in `pyproject.toml` (plus `uv lock` for `uv.lock`) and add its `## [X.Y.Z] - YYYY-MM-DD` section to `CHANGELOG.md`, written from `git log v<previous>..HEAD` as user-facing Added/Changed/Fixed bullets (one line per bullet: GitHub release bodies turn line breaks into `<br>`). Push to `master`. `.github/workflows/release.yml` then runs `.github/scripts/release-check.sh`, which:
+- does nothing if `v<version>` already exists
+- fails if the version isn't newer than the latest `v*` tag, or if `CHANGELOG.md` has no section for it
+- otherwise tests, builds, waits for the owner's approval of the `pypi` environment, publishes to PyPI, and creates tag and GitHub release, with the changelog section as the body
+
+Never push a `v*` tag by hand. `tests/test_changelog.py` fails as soon as the `pyproject.toml` version has no changelog section.
+
+Building or publishing locally, outside the release flow:
+
 ```bash
 uv build                   # produces dist/
 uv publish                 # upload to PyPI

@@ -1,12 +1,47 @@
 name: release
 
+# Releasing = bumping `version` in pyproject.toml together with its CHANGELOG.md
+# section and pushing to master. `check` decides whether that version is new;
+# the tag is created by the GitHub release at the end.
 on:
   push:
-    tags:
-      - "v*"
+    branches: [master]
+    paths:
+      - pyproject.toml
+      - CHANGELOG.md
+      - .github/workflows/release.yml
+      - .github/scripts/**
+  workflow_dispatch:
+
+concurrency:
+  group: release
+  cancel-in-progress: false
 
 jobs:
+  check:
+    if: github.ref == 'refs/heads/master'
+    runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.check.outputs.tag }}
+      should_release: ${{ steps.check.outputs.should_release }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0  # all tags, for the "newer than the latest release" check
+
+      - name: Check version and extract changelog
+        id: check
+        run: .github/scripts/release-check.sh
+
+      - uses: actions/upload-artifact@v7
+        if: steps.check.outputs.should_release == 'true'
+        with:
+          name: notes
+          path: notes.md
+
   test:
+    needs: check
+    if: needs.check.outputs.should_release == 'true'
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -27,6 +62,8 @@ jobs:
         run: uv run pytest -q
 
   build:
+    needs: check
+    if: needs.check.outputs.should_release == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -35,14 +72,6 @@ jobs:
         uses: astral-sh/setup-uv@v7
         with:
           python-version: "3.12"
-
-      - name: Verify tag matches pyproject version
-        run: |
-          version=$(grep -m1 '^version' pyproject.toml | cut -d'"' -f2)
-          if [ "v$version" != "${GITHUB_REF_NAME}" ]; then
-            echo "Tag ${GITHUB_REF_NAME} does not match pyproject version v$version" >&2
-            exit 1
-          fi
 
       - name: Build
         run: uv build
@@ -113,7 +142,7 @@ jobs:
           curl -fsS -X PURGE https://pypi.org/project/portmgr/ || true
 
   github-release:
-    needs: pypi
+    needs: [check, pypi]
     runs-on: ubuntu-latest
     permissions:
       contents: write  # required to create the release
@@ -125,10 +154,17 @@ jobs:
           name: dist
           path: dist/
 
+      - uses: actions/download-artifact@v8
+        with:
+          name: notes
+
       - name: Create GitHub release
         env:
           GH_TOKEN: ${{ github.token }}
+          TAG: ${{ needs.check.outputs.tag }}
         run: |
-          gh release create "${GITHUB_REF_NAME}" dist/* \
-            --title "${GITHUB_REF_NAME}" \
-            --generate-notes
+          # Creates the tag on the released commit; the body is the CHANGELOG.md section.
+          gh release create "$TAG" dist/* \
+            --target "$GITHUB_SHA" \
+            --title "$TAG" \
+            --notes-file notes.md
