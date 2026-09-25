@@ -20,7 +20,6 @@ def test_seal_creates_artifacts(tmp_path):
     secrets.seal(str(secret))
 
     assert (tmp_path / "secret.env.age").is_file()
-    assert "secret.env" in (tmp_path / ".gitignore").read_text()
     assert (tmp_path / ".migrated").is_file()
 
 

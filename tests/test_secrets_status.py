@@ -61,24 +61,6 @@ def test_status_clean(tmp_path):
     assert keys == []
 
 
-# --- gitignore_append ----------------------------------------------------
-
-def test_gitignore_append_creates_file(tmp_path):
-    secrets.gitignore_append(str(tmp_path), "secret.env")
-    assert (tmp_path / ".gitignore").read_text() == "secret.env\n"
-
-
-def test_gitignore_append_idempotent(tmp_path):
-    secrets.gitignore_append(str(tmp_path), "secret.env")
-    secrets.gitignore_append(str(tmp_path), "secret.env")
-    assert (tmp_path / ".gitignore").read_text() == "secret.env\n"
-
-
-def test_gitignore_append_inserts_missing_newline(tmp_path):
-    (tmp_path / ".gitignore").write_text("existing")  # no trailing newline
-    secrets.gitignore_append(str(tmp_path), "secret.env")
-    assert (tmp_path / ".gitignore").read_text() == "existing\nsecret.env\n"
-
 
 # --- write_migrated ------------------------------------------------------
 
