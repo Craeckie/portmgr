@@ -33,6 +33,9 @@ Now, if you run `portmgr u` in `docker/` it will run `docker compose up -d` in `
 
 portmgr starts from the current directory, so when running it in `docker/storage/`, it will run `docker compose` only in `nextcloud/` and `immich/`. You can also use it in a directory with a `docker-compose.yml` as a shortener for docker-compose commands.
 
+### One tree for several hosts
+To deploy a different set of stacks on each host from the same tree, set `PORTMGR_SUB_NAME` to a host-specific file name, e.g. `PORTMGR_SUB_NAME=dckrsub-web.yml`. In every directory portmgr then follows `dckrsub-web.yml` **and** `dckrsub.yml`, if they exist, and runs each stack once. So `dckrsub.yml` lists what every host runs, and `dckrsub-<host>.yml` adds what only that host runs. Several names can be given, separated by spaces, commas or semicolons; `dckrsub.yml` is always followed last.
+
 ### Commands
 The following commands are available. The respective docker-compose commands are in brackets.
 

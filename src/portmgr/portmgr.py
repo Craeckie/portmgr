@@ -15,7 +15,18 @@ class MyParser(argparse.ArgumentParser):
         sys.exit(2)
 
 
-sub_names = [x.strip() for x in re.split('[ ,;]+', os.environ.get('PORTMGR_SUB_NAME', 'dckrsub.yml'))]
+default_sub_name = 'dckrsub.yml'
+
+
+def parse_sub_names(value):
+    # dckrsub.yml is always followed, after the names from PORTMGR_SUB_NAME
+    names = [x for x in re.split('[ ,;]+', value or '') if x]
+    if default_sub_name not in names:
+        names.append(default_sub_name)
+    return names
+
+
+sub_names = parse_sub_names(os.environ.get('PORTMGR_SUB_NAME'))
 compose_names = [x.strip() for x in
                  os.environ.get('PORTMGR_COMPOSE_NAME', 'docker-compose.yml, docker-compose.yaml').split(',')]
 

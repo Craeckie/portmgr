@@ -64,3 +64,36 @@ def test_addcommand_relative_dot_uses_basename(tmp_path, reset_globals):
     portmgr.addCommand(str(tmp_path / "stack"))
 
     assert portmgr.action_list[0]["relative"] == "stack"
+
+
+def test_parse_sub_names_appends_default():
+    assert portmgr.parse_sub_names("dckrsub-host.yml") == ["dckrsub-host.yml", "dckrsub.yml"]
+    assert portmgr.parse_sub_names("a.yml, b.yml;c.yml") == ["a.yml", "b.yml", "c.yml", "dckrsub.yml"]
+
+
+def test_parse_sub_names_no_duplicate_default():
+    assert portmgr.parse_sub_names(None) == ["dckrsub.yml"]
+    assert portmgr.parse_sub_names("") == ["dckrsub.yml"]
+    assert portmgr.parse_sub_names("dckrsub-host.yml,dckrsub.yml") == ["dckrsub-host.yml", "dckrsub.yml"]
+    assert portmgr.parse_sub_names("dckrsub.yml dckrsub-host.yml") == ["dckrsub.yml", "dckrsub-host.yml"]
+
+
+def test_traverse_host_file_and_default_add_up(tmp_path, reset_globals, monkeypatch):
+    # The env names only the host file; dckrsub.yml is still followed, in every directory.
+    (tmp_path / "dckrsub-host.yml").write_text("- host\n")
+    (tmp_path / "dckrsub.yml").write_text("- common\n")
+    (tmp_path / "host").mkdir()
+    (tmp_path / "host" / "dckrsub.yml").write_text("- a\n")
+    make_leaf(tmp_path / "host" / "a")
+    (tmp_path / "common").mkdir()
+    (tmp_path / "common" / "dckrsub-host.yml").write_text("- b\n")
+    (tmp_path / "common" / "dckrsub.yml").write_text("- c\n- b\n")
+    make_leaf(tmp_path / "common" / "b")
+    make_leaf(tmp_path / "common" / "c")
+
+    monkeypatch.setattr(portmgr, "sub_names", portmgr.parse_sub_names("dckrsub-host.yml"))
+    portmgr.base_directory = str(tmp_path)
+    portmgr.traverse(str(tmp_path))
+
+    relatives = [a["relative"] for a in portmgr.action_list]
+    assert relatives == ["host/a", "common/b", "common/c"]
