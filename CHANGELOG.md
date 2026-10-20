@@ -2,6 +2,11 @@
 
 What changed in each release of portmgr. The section of a version is also the body of its GitHub release, so a version bump in `pyproject.toml` always comes with its section here.
 
+## [1.12.0] - 2026-10-20
+
+### Changed
+- `dckrsub.yml` is always followed, also when `PORTMGR_SUB_NAME` names other files. `PORTMGR_SUB_NAME=dckrsub-web.yml` now means `dckrsub-web.yml` plus `dckrsub.yml` in every directory, so the files a host reads no longer depend on whether you remembered to list `dckrsub.yml`.
+
 ## [1.11.1] - 2026-09-25
 
 ### Fixed
