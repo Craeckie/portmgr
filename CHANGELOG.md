@@ -2,6 +2,17 @@
 
 What changed in each release of portmgr. The section of a version is also the body of its GitHub release, so a version bump in `pyproject.toml` always comes with its section here.
 
+## [1.13.0] - 2026-10-22
+
+### Added
+- Per-host sealing: with a `seal-recipients.yml`, each file is sealed only to the SSH keys of the hosts that run it, plus a recovery key, so a host can unseal its own secrets and nothing else. The hosts come from path rules or from each host's `dckrsub-<host>.yml` chain. See [docs/sealing.md](https://github.com/Craeckie/portmgr/blob/master/docs/sealing.md).
+- `portseal` command: `portseal e` seals files, `portseal d` unseals every `*.age` below a path, `portseal k` reseals files whose recipients changed (also from the passphrase, without writing plaintext), and `portseal s` shows who can unseal each file. It works outside compose trees too.
+- `PORTMGR_IDENTITY` names the private keys to unseal with (default `~/.ssh/id_ed25519`); a passphrase-protected age key file asks for its passphrase.
+
+### Changed
+- `D` also unseals files in subdirectories of a stack, such as `config/settings.yml.age`, and skips files that weren't sealed for this host instead of failing.
+- Files without a `seal-recipients.yml` are still sealed with `PORTMGR_PASSPHRASE`, and passphrase-sealed files keep unsealing as before.
+
 ## [1.12.0] - 2026-10-20
 
 ### Changed
