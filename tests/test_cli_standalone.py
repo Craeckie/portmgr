@@ -46,3 +46,19 @@ def test_non_standalone_command_skips_compose_less_dir(tmp_path):
     result = run_portmgr(["S"], cwd=tmp_path)
     assert result.returncode == 0, result.stdout + result.stderr
     assert "->" not in result.stdout
+
+
+def test_unseal_finds_nested_files(tmp_path):
+    (tmp_path / "docker-compose.yml").write_text("services: {}\n")
+    (tmp_path / "config").mkdir()
+    nested = tmp_path / "config" / "settings.yml"
+    nested.write_text("token: abc\n")
+
+    sealed = run_portmgr(["E", "config/settings.yml"], cwd=tmp_path)
+    assert sealed.returncode == 0, sealed.stdout + sealed.stderr
+    nested.unlink()
+
+    unsealed = run_portmgr(["D"], cwd=tmp_path)
+    assert unsealed.returncode == 0, unsealed.stdout + unsealed.stderr
+    assert "decrypted config/settings.yml.age" in unsealed.stdout
+    assert nested.read_text() == "token: abc\n"

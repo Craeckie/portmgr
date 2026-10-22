@@ -1,7 +1,7 @@
 import os
 
 from portmgr import command_list, command_extra
-from portmgr import secrets
+from portmgr import sealing, secrets
 
 
 def func(action):
@@ -13,12 +13,8 @@ def func(action):
     directory = action['directory']
     relative = action['relative']
 
-    # glob('*.age') skips dotfiles; list and filter manually to catch .env.age etc.
-    age_files = sorted(
-        os.path.join(directory, f)
-        for f in os.listdir(directory)
-        if f.endswith('.age') and os.path.isfile(os.path.join(directory, f))
-    )
+    # Also catches dotfiles (.env.age) and files in subdirectories (config/*.age).
+    age_files = sealing.find_age_files([directory])
     if not age_files:
         return 0
 
@@ -29,12 +25,14 @@ def func(action):
         try:
             result = secrets.unseal(age_path, force=force)
             if result != "skipped":
-                print(f"  {relative}: decrypted {os.path.basename(age_path)}")
+                print(f"  {relative}: decrypted {os.path.relpath(age_path, directory)}")
+        except sealing.NotForThisHost:
+            print(f"  {relative}: {os.path.relpath(age_path, directory)} is not sealed for this host, skipped")
         except RuntimeError as exc:
             print(f"  {relative}: {exc}")
             return 1
         except Exception as exc:
-            print(f"  {relative}: failed to decrypt {os.path.basename(age_path)}: {exc}")
+            print(f"  {relative}: failed to decrypt {os.path.relpath(age_path, directory)}: {exc}")
             return 1
 
     return 0

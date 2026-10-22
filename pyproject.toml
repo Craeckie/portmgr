@@ -36,3 +36,4 @@ Repository = "https://github.com/Craeckie/portmgr.git"
 Changelog = "https://github.com/Craeckie/portmgr/blob/master/CHANGELOG.md"
 [project.scripts]
 portmgr = "portmgr:main"
+portseal = "portmgr.portseal:main"

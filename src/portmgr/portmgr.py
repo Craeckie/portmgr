@@ -107,23 +107,32 @@ def normalize_argv(argv, commands):
     return new_argv
 
 
-def traverse(cur_directory):
-    # print("Traversing in " + cur_directory)
-    for sub_name in sub_names:
+def walk(cur_directory, names=None, _seen=None):
+    """Yield ('dir', path) for every directory the sub files reach and
+    ('stack', path) where traverse() adds a target, in traversal order.
+    `names` defaults to sub_names; no global state is touched."""
+    names = sub_names if names is None else names
+    seen = set() if _seen is None else _seen
+    key = os.path.normpath(cur_directory)
+    if key in seen or not os.path.isdir(cur_directory):
+        return
+    seen.add(key)
+    yield 'dir', cur_directory
+    for sub_name in names:
         sub_path = os.path.join(cur_directory, sub_name)
         compose_paths = [os.path.join(cur_directory, name) for name in compose_names]
 
-        # print("Checking file at " + sub_path)
         if os.path.isfile(sub_path):  # has sub folders
-            # print("Has sub folders!")
-            # sub_folders = dckrjsn.read_json(sub_path, sch = sub_scheme)
-            sub_folders = read_yaml(sub_path)
-            for sub_folder in sub_folders:
-                # print("Checking out " + sub_folder)
-                next_directory = os.path.join(cur_directory, sub_folder)
-                traverse(next_directory)
+            for sub_folder in read_yaml(sub_path) or []:
+                yield from walk(os.path.join(cur_directory, sub_folder), names, seen)
         elif any(os.path.isfile(path) for path in compose_paths):  # has a docker-compose file
-            addCommand(cur_directory)
+            yield 'stack', cur_directory
+
+
+def traverse(cur_directory):
+    for kind, directory in walk(cur_directory):
+        if kind == 'stack':
+            addCommand(directory)
 
 
 def main():

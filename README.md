@@ -72,7 +72,7 @@ sudo pip install https://github.com/Craeckie/portmgr.git
 
 ### Sealing secrets
 
-portmgr can encrypt secret-bearing files (`.env`, config files) with [age](https://age-encryption.org/) so they are safe to commit to git. Decryption happens once at setup time; the plaintext files remain on disk for Docker to use normally.
+portmgr can encrypt secret-bearing files (`.env`, config files) with [age](https://age-encryption.org/) so they are safe to commit to git. Decryption happens once at setup time; the plaintext files remain on disk for Docker to use normally. With a `seal-recipients.yml`, each file is sealed only to the hosts that run it (their SSH keys) plus a recovery key; without one, all files share one passphrase. [docs/sealing.md](https://github.com/Craeckie/portmgr/blob/master/docs/sealing.md) covers the recipients file, host and recovery keys, adding hosts and moving from a passphrase.
 
 **Requires the `secrets` extra:**
 ```
@@ -95,7 +95,15 @@ This creates `.env.age` and writes a `.migrated` marker. Commit the `.age` file 
 ```
 portmgr D
 ```
-Recurses via `dckrsub.yml` and decrypts every `*.age` whose plaintext is missing. Pass `--force` to overwrite existing plaintext from the sealed copy.
+Recurses via `dckrsub.yml` and decrypts every `*.age` in each stack's directory and below it whose plaintext is missing. Files not sealed for this host are skipped. Pass `--force` to overwrite existing plaintext from the sealed copy.
+
+**Outside a compose tree, or for the whole tree at once**, use `portseal` (installed with portmgr):
+```
+portseal e <file>…        # seal
+portseal d [path…]        # unseal every *.age below the paths
+portseal k [path…]        # reseal files whose recipients changed
+portseal s [path…]        # show who can unseal each file
+```
 
 **Check migration progress:**
 ```
@@ -111,12 +119,9 @@ Finds postgres and mariadb/mysql services in each compose stack, generates a new
 
 Every rotated password is printed under its `.env` name, with the old and the new value each on its own `old:` / `new:` line, also when only part of a service could be rotated, so you can replace the old value wherever else it is configured. The output contains the passwords in clear text; keep it out of logs you share. Re-seal `.env` with `portmgr E .env` afterwards if you keep a `.env.age`.
 
-**Passphrase:** portmgr prompts once and caches the passphrase for the rest of the run. For non-interactive use (e.g. in scripts or provisioning), set:
-```
-PORTMGR_PASSPHRASE=<passphrase> portmgr D
-```
+**Keys:** files sealed to host keys are unsealed with `~/.ssh/id_ed25519`, or the keys in `PORTMGR_IDENTITY` (comma-separated paths). For passphrase-sealed files portmgr prompts once and caches the passphrase for the rest of the run; for non-interactive use, set `PORTMGR_PASSPHRASE=<passphrase>`.
 
 After running `portmgr u`, a footer line is printed if any services have not yet been sealed.
 
 ### Tipps
-If you use portmgr a lot like me, you might want to shorten it to one letter. For bash, you can add `alias p='portmgr'` to `~/.bashrc`. For fish-shell you can add `abbr p portmgr` to `~/.config/fish/config.fish`.
+If you use portmgr a lot like me, you might want to shorten it to one letter. For bash, you can add `alias p='portmgr'` to `~/.bashrc`. For fish-shell you can add `abbr p portmgr` to `~/.config/fish/config.fish`. The same works for `portseal`, e.g. `alias pz=portseal`.

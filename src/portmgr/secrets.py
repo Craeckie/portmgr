@@ -1,98 +1,67 @@
+import functools
 import os
 import re
 from datetime import datetime
 
 import yaml
 
-_passphrase = None
+from portmgr import sealing
+from portmgr.sealing import (  # noqa: F401 (re-exported for the commands and tests)
+    _cache_passphrase,
+    _clear_passphrase,
+    _load_pyrage,
+    get_passphrase,
+)
 
 SECRET_KEY_PATTERN = re.compile(
     r"(?i)(PASS(WORD)?|SECRET|TOKEN|KEY|AUTHKEY|APIKEY|CREDENTIAL)"
 )
 
 
-def _load_pyrage():
-    try:
-        import pyrage
-        return pyrage
-    except ImportError:
-        print("pyrage is required for secret commands. Install with: pip install portmgr[secrets]")
-        return None
+def dckrsub_resolver(plain_path, base_dir, config):
+    """Hosts whose dckrsub chain (their `sub` in the recipients file) reaches the
+    file's nearest ancestor directory below base_dir."""
+    from portmgr import portmgr
+
+    reached = {}
+    for host, entry in config["hosts"].items():
+        if entry.get("sub"):
+            names = tuple(portmgr.parse_sub_names(entry["sub"]))
+            reached[host] = _reached_dirs(os.path.normpath(base_dir), names)
+    base = os.path.normpath(base_dir)
+    directory = os.path.dirname(os.path.abspath(plain_path))
+    while directory.startswith(base + os.sep):
+        hosts = [h for h, dirs in reached.items() if directory in dirs]
+        if hosts:
+            return hosts
+        directory = os.path.dirname(directory)
+    return []
 
 
-def get_passphrase():
-    """Return (passphrase, source) where source is 'cache', 'env', or 'tty'."""
-    global _passphrase
-    if _passphrase is not None:
-        return _passphrase, 'cache'
-    env = os.environ.get("PORTMGR_PASSPHRASE")
-    if env:
-        return env, 'env'
-    try:
-        with open("/dev/tty", "r") as tty:
-            import getpass
-            return getpass.getpass("Passphrase: ", stream=tty), 'tty'
-    except OSError:
-        raise RuntimeError(
-            "No passphrase available: set PORTMGR_PASSPHRASE or run interactively"
-        )
+@functools.lru_cache(maxsize=None)
+def _reached_dirs(base_dir, names):
+    from portmgr import portmgr
 
-
-def _cache_passphrase(value):
-    global _passphrase
-    _passphrase = value
-
-
-def _clear_passphrase():
-    global _passphrase
-    _passphrase = None
+    return frozenset(os.path.normpath(p) for kind, p in portmgr.walk(base_dir, list(names)) if kind == 'dir')
 
 
 def seal(path):
-    pyrage = _load_pyrage()
-    if pyrage is None:
-        raise ImportError("pyrage not available")
-    path = os.path.abspath(path)
-    with open(path, "rb") as fh:
-        data = fh.read()
-    passphrase, _ = get_passphrase()
-    encrypted = pyrage.passphrase.encrypt(data, passphrase)
-    age_path = path + ".age"
-    with open(age_path, "wb") as fh:
-        fh.write(encrypted)
-    directory = os.path.dirname(path)
-    write_migrated(directory)
+    age_path = sealing.seal(path, resolver=dckrsub_resolver)
+    write_migrated(os.path.dirname(os.path.abspath(path)))
+    return age_path
 
 
 def unseal(path_age, force=False):
-    pyrage = _load_pyrage()
-    if pyrage is None:
-        raise ImportError("pyrage not available")
-    path_age = os.path.abspath(path_age)
-    if not path_age.endswith(".age"):
-        raise ValueError(f"Not a sealed file: {path_age}")
-    target = path_age[:-4]
-    if os.path.exists(target) and not force:
-        return "skipped"
-    with open(path_age, "rb") as fh:
-        data = fh.read()
-    while True:
-        passphrase, source = get_passphrase()
-        try:
-            plaintext = pyrage.passphrase.decrypt(data, passphrase)
-            break
-        except Exception:
-            _clear_passphrase()
-            if source in ('env', 'cache'):
-                raise ValueError(
-                    f"Wrong passphrase for {os.path.basename(path_age)}. "
-                    f"Check PORTMGR_PASSPHRASE."
-                )
-            print(f"Wrong passphrase for {os.path.basename(path_age)}, try again.")
-    with open(target, "wb") as fh:
-        fh.write(plaintext)
-    _cache_passphrase(passphrase)
-    return "decrypted"
+    return sealing.unseal(path_age, force=force)
+
+
+def mark_migrated_if_stack(path):
+    """after_seal hook for portseal: write .migrated next to a compose file."""
+    from portmgr.portmgr import compose_names
+
+    directory = os.path.dirname(path)
+    if any(os.path.isfile(os.path.join(directory, name)) for name in compose_names):
+        write_migrated(directory)
 
 
 def find_secret_keys(compose_path):
