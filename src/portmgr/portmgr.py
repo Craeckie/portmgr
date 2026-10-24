@@ -80,31 +80,87 @@ def read_yaml(path):
             print(exc)
 
 
-def normalize_argv(argv, commands):
-    """Convert bare command letters/strings to flag form so argparse can parse
-    them (e.g. 'u' -> '-u', 'dul' -> '-dul', '-B /path m' -> '-B /path -m').
+class ArgvError(Exception):
+    """A command line that doesn't follow the grammar of split_argv()."""
 
-    Strings are only converted when every character is a registered command
-    letter. The -B value is consumed verbatim first to avoid misidentifying it.
-    `commands` is the command_list dict (membership-tested per character).
+
+class HelpRequested(Exception):
+    """-h/--help came before the arguments."""
+
+
+COMBINE_HINT = "combine commands as 'pul', '-p -u -l' or 'pu -l'"
+
+
+def _letters(token, letters, commands):
+    for c in letters:
+        if c not in commands:
+            raise ArgvError(f"unknown command '{c}' in '{token}'")
+    return list(letters)
+
+
+def split_argv(argv, commands):
+    """Split a command line into (base_dir, command letters, arguments), the
+    way tar and POSIX getopt read theirs:
+
+      portmgr [-B DIR] [WORD] [-GROUP ...] [ARGS...]
+
+    WORD is a bare word of command letters, recognised only as the first
+    token (-B DIR doesn't count). Each -GROUP is a dash group of command
+    letters. Everything from the first other token on is an argument and is
+    never read as a command, even if it starts with '-'; '--' starts the
+    arguments explicitly. -B DIR is accepted anywhere.
+
+    Arguments are only accepted when a given command declares 'args': True
+    (any) or a tuple of the words it accepts. Raises ArgvError on anything
+    else, HelpRequested on -h/--help before the arguments.
+    `commands` is the command_list dict.
     """
-    new_argv = []
+    base_dir = ''
+    letters = []
+    args = []
+    first = True
+    in_args = False
     i = 0
     while i < len(argv):
-        arg = argv[i]
-        if arg == '-B':
-            new_argv.append(arg)
+        tok = argv[i]
+        i += 1
+        if tok == '-B':
+            if i >= len(argv):
+                raise ArgvError('-B needs a directory')
+            base_dir = argv[i]
             i += 1
-            if i < len(argv):
-                new_argv.append(argv[i])
-                i += 1
-        elif not arg.startswith('-') and arg and all(c in commands for c in arg):
-            new_argv.append('-' + arg)
-            i += 1
+            continue
+        elif tok.startswith('-B') and not in_args:
+            base_dir = tok[2:]
+            continue
+        elif in_args:
+            args.append(tok)
+        elif tok in ('-h', '--help'):
+            raise HelpRequested()
+        elif tok == '--':
+            in_args = True
+        elif first and tok and not tok.startswith('-'):
+            letters += _letters(tok, tok, commands)
+        elif len(tok) > 1 and tok.startswith('-') and not tok.startswith('--'):
+            letters += _letters(tok, tok[1:], commands)
         else:
-            new_argv.append(arg)
-            i += 1
-    return new_argv
+            in_args = True
+            args.append(tok)
+        first = False
+
+    if args:
+        takers = [c for c in letters if commands[c].get('args')]
+        if not takers:
+            raise ArgvError(f"unexpected argument '{args[0]}': {COMBINE_HINT}")
+        for c in takers:
+            allowed = commands[c]['args']
+            if allowed is True:
+                continue
+            for arg in args:
+                if arg not in allowed:
+                    words = ', '.join(f"'{a}'" for a in allowed)
+                    raise ArgvError(f"{c} takes only {words}, not '{arg}'")
+    return base_dir, letters, args
 
 
 def walk(cur_directory, names=None, _seen=None):
@@ -167,18 +223,25 @@ def main():
                             const=cmd[0],
                             help=cmd[1]['hlp'])
 
-    argv = normalize_argv(sys.argv[1:], command_list)
+    try:
+        base_dir, letters, extra = split_argv(sys.argv[1:], command_list)
+    except HelpRequested:
+        parser.parse_args(['-h'])
+    except ArgvError as exc:
+        sys.stderr.write(f'portmgr: {exc}\n')
+        sys.exit(2)
 
-    args, extra = parser.parse_known_args(argv)
+    # argparse only sees the command letters; it still builds -h and the help text.
+    args = parser.parse_args(['-' + c for c in letters])
 
-    if len(sys.argv) == 1 or not args.a_cmd:
+    if not args.a_cmd:
         parser.print_help()
         sys.exit(1)
 
     command_extra.clear()
     command_extra.extend(extra)
 
-    base_directory = os.path.join(os.getcwd(), args.base_directory)
+    base_directory = os.path.join(os.getcwd(), base_dir)
 
     # if args.recursive:
     traverse(base_directory)

@@ -5,6 +5,11 @@ from portmgr import sealing, secrets
 
 
 def func(action):
+    other = [arg for arg in command_extra if arg != '--force']
+    if other:
+        print(f"  {action['relative']}: D takes only --force, not {other[0]!r}")
+        return 1
+
     pyrage = secrets._load_pyrage()
     if pyrage is None:
         return 1
@@ -42,5 +47,6 @@ command_list['D'] = {
     'hlp': 'Decrypt/unseal sealed secret files (age)',
     'ord': 'nrm',
     'fnc': func,
-    'standalone': True
+    'standalone': True,
+    'args': ('--force',),
 }

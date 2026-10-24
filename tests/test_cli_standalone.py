@@ -62,3 +62,22 @@ def test_unseal_finds_nested_files(tmp_path):
     assert unsealed.returncode == 0, unsealed.stdout + unsealed.stderr
     assert "decrypted config/settings.yml.age" in unsealed.stdout
     assert nested.read_text() == "token: abc\n"
+
+
+def test_seal_file_named_like_command_letters(tmp_path):
+    # 'pass' is made of command letters (pull, attach, stop, stop); as an
+    # argument of E it is a file name, never a command.
+    (tmp_path / "docker-compose.yml").write_text("services: {}\n")
+    (tmp_path / "pass").write_text("hunter2\n")
+
+    result = run_portmgr(["E", "pass"], cwd=tmp_path)
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert "sealed pass -> pass.age" in result.stdout
+    assert "Failed" not in result.stdout
+    assert (tmp_path / "pass.age").is_file()
+
+
+def test_unseal_rejects_other_arguments(tmp_path):
+    result = run_portmgr(["D", "x"], cwd=tmp_path)
+    assert result.returncode == 2
+    assert "D takes only '--force', not 'x'" in result.stderr

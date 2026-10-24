@@ -60,6 +60,8 @@ The following commands are available. The respective docker-compose commands are
 
 You combine multiple commands. For example `portmgr dul`, runs docker compose with `down`, `up` and `logs`, thus stopping, removing and starting all containers and then showing the logs.
 
+Commands are read the way `tar` reads its options: `dul`, `-dul`, `-d -u -l` and `du -l` are the same, but a word of command letters only counts in first position. Everything after the commands is an argument, never a command, so `portmgr E pass` seals the file `pass`. Only `E` (files) and `D` (`--force`) take arguments; a stray word such as `portmgr du l` is an error and runs nothing.
+
 ### Installation
 ```
 sudo pip install portmgr
@@ -95,7 +97,7 @@ This creates `.env.age` and writes a `.migrated` marker. Commit the `.age` file 
 ```
 portmgr D
 ```
-Recurses via `dckrsub.yml` and decrypts every `*.age` in each stack's directory and below it whose plaintext is missing. Files not sealed for this host are skipped. Pass `--force` to overwrite existing plaintext from the sealed copy.
+Recurses via `dckrsub.yml` and decrypts every `*.age` in each stack's directory and below it whose plaintext is missing. Files not sealed for this host are skipped. Use `portmgr D --force` to overwrite existing plaintext from the sealed copy.
 
 **Outside a compose tree, or for the whole tree at once**, use `portseal` (installed with portmgr):
 ```

@@ -2,6 +2,16 @@
 
 What changed in each release of portmgr. The section of a version is also the body of its GitHub release, so a version bump in `pyproject.toml` always comes with its section here.
 
+## [Unreleased]
+
+### Fixed
+- `portmgr E pass` seals the file `pass`. Before, a file name made only of command letters (`pass`, `dup`) was run as commands: `E pass` pulled, opened the attach picker and stopped the stack.
+
+### Changed
+- The command line follows tar/getopt rules: `pul`, `-pul`, `-p -u -l` and `pu -l` all work, a word of command letters counts only in first position, and everything after the commands is an argument.
+- A stray word is an error (exit 2) and runs nothing: `portmgr l db` no longer runs logs, down and build, and `portmgr u wiki` no longer starts every stack.
+- `D --force` is the only spelling; `--force D` is an error.
+
 ## [1.13.0] - 2026-10-22
 
 ### Added

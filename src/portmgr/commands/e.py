@@ -6,7 +6,7 @@ from portmgr import secrets
 
 def func(action):
     if not command_extra:
-        print("Usage: portmgr e <file> [file ...]")
+        print("Usage: portmgr E <file> [file ...]")
         return 1
 
     pyrage = secrets._load_pyrage()
@@ -49,5 +49,6 @@ command_list['E'] = {
     'hlp': 'Encrypt/seal secret file(s) (age)',
     'ord': 'nrm',
     'fnc': func,
-    'standalone': True
+    'standalone': True,
+    'args': True,
 }
