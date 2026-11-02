@@ -4,6 +4,17 @@ What changed in each release of portmgr. The section of a version is also the bo
 
 ## [Unreleased]
 
+## [1.15.0] - 2026-11-02
+
+### Added
+- `PORTMGR_LOG_DIR` writes each stack's output to its own log file and leaves one status line per stack on stdout: `-> <stack> OK|FAILED|SKIPPED (3m12s)`.
+- `PORTMGR_RESULTS` appends one JSON line per stack: stack, command, exit code, status, start, duration, log file and, for `r` and `b`, the images the stack builds.
+- `PORTMGR_STOP_FILE` skips the remaining stacks once the file exists, so a watcher can stop a run whose failures all have the same cause.
+
+### Fixed
+- In a cron job or any other pipe, `-> <stack>` and portmgr's error lines now come before that stack's docker output instead of all together at the end of the log.
+- `b` passes the shell's environment to `docker compose build` again (it used to pass only the two BuildKit variables, dropping `PATH`, `HOME` and `DOCKER_CONFIG`).
+
 ## [1.14.0] - 2026-11-02
 
 ### Fixed
