@@ -4,6 +4,8 @@ What changed in each release of portmgr. The section of a version is also the bo
 
 ## [Unreleased]
 
+## [1.14.0] - 2026-11-02
+
 ### Fixed
 - `r` and `b` work on a host that can't unseal a stack's `.env` or its `extends` files: they no longer stop at `docker compose config`, which needs both just to list the services.
 - `portmgr E pass` seals the file `pass`. Before, a file name made only of command letters (`pass`, `dup`) was run as commands: `E pass` pulled, opened the attach picker and stopped the stack.
