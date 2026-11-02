@@ -2,14 +2,15 @@ from portmgr import command_list, runCompose, runBuildx
 import subprocess
 import os
 
-from portmgr.wrapper import getServices
+from portmgr.wrapper import buildFile
 
 
 def func(action):
-    relative = action['relative']
+    with buildFile() as (services, files):
+        return build_and_push(action['relative'], services, files)
 
-    services = getServices(includeOnlyBuildable=True)
 
+def build_and_push(relative, services, files):
     print('Services to build: ' + ', '.join(services))
 
     res = 0
@@ -21,6 +22,7 @@ def func(action):
             try:
                 new_res = runBuildx(
                     ['bake',
+                     *files,
                      '--pull',
                      '--push',
                      '--set', f'*.platform={multi_platform}',
@@ -35,7 +37,8 @@ def func(action):
         else:
             try:
                 new_res = runCompose(
-                        ['build',
+                        [*files,
+                         'build',
                          '--pull',
                          '--force-rm',
                          '--compress',
@@ -47,7 +50,8 @@ def func(action):
                     print(f"Error building {service}!")
                 else:
                     new_res = runCompose(
-                            ['push',
+                            [*files,
+                             'push',
                              '--ignore-push-failures',
                              service
                              ]

@@ -62,6 +62,9 @@ You combine multiple commands. For example `portmgr dul`, runs docker compose wi
 
 Commands are read the way `tar` reads its options: `dul`, `-dul`, `-d -u -l` and `du -l` are the same, but a word of command letters only counts in first position. Everything after the commands is an argument, never a command, so `portmgr E pass` seals the file `pass`. Only `E` (files) and `D` (`--force`) take arguments; a stray word such as `portmgr du l` is an error and runs nothing.
 
+### Building images
+`b` and `r` read the `build`, `image` and `platform` of every service that has its own `build:` straight from the compose file and run `docker compose -f .portmgr-build.yml build` (`r` also `push`, or `docker buildx bake` with `PORTMGR_MULTI_PLATFORM`) on a temporary file holding only those keys, removed afterwards. A host that only builds images doesn't need the stack's `.env`, sealed `extends` files or anything else the rest of the compose file refers to. Services with `profiles:` are built only when `COMPOSE_PROFILES` names one of them.
+
 ### Installation
 ```
 sudo pip install portmgr
