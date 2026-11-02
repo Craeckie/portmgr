@@ -2,11 +2,13 @@ from portmgr import command_list, runCompose, runBuildx
 import subprocess
 import os
 
+from portmgr.runlog import flush_output, service_images
 from portmgr.wrapper import buildFile
 
 
 def func(action):
     with buildFile() as (services, files):
+        action['images'] = service_images(services)
         return build_and_push(action['relative'], services, files)
 
 
@@ -63,6 +65,7 @@ def build_and_push(relative, services, files):
             if new_res != 1:
                 res = new_res
         if os.environ.get("PORTMGR_CLEAN_AFTER_PUSH", "").lower() == "true":
+            flush_output()
             subprocess.call(['docker', 'system', 'prune', '--all', '--force'])
             subprocess.call(['docker', 'buildx', 'prune', '--all', '--force'])
 

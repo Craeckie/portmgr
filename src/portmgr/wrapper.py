@@ -5,6 +5,8 @@ from subprocess import run, check_output
 
 import yaml
 
+from portmgr.runlog import flush_output
+
 # Holds only the build sections of a stack; written next to the compose file so
 # relative paths, .env and the project name resolve as they do for the original.
 BUILD_FILE = '.portmgr-build.yml'
@@ -120,6 +122,7 @@ def buildFile(directory='.'):
 
 
 def getServices(includeOnlyBuildable=False):
+    flush_output()
     data = check_output(['docker', 'compose', 'config', '--format', 'json'])
     config = json.loads(data)
     services = config['services']
@@ -129,6 +132,7 @@ def getServices(includeOnlyBuildable=False):
 
 
 def getServicesRunning():
+    flush_output()
     data = check_output(['docker', 'compose', 'ps', '--format', 'json'])
     try:
         lines = data.decode().splitlines()
@@ -150,6 +154,7 @@ def getServicesRunning():
 
 
 def getImages():
+    flush_output()
     data = check_output(['docker', 'compose', 'images', '--format', 'json'])
     image_list = json.loads(data)
     images = [
@@ -164,6 +169,7 @@ def getImages():
 
 def getStats():
     containers = getServicesRunning()
+    flush_output()
     data = check_output(['docker', 'stats', '--format', 'json', '--no-stream'] + containers, text=True).strip()
     data_lines = data.split('\n')
     stats = [json.loads(line) for line in data_lines]
@@ -175,9 +181,11 @@ def runCompose(args, **kwargs):
     if os.environ.get("PORTMGR_IN_SCRIPT", "").lower() == "true":
         command += ["--ansi", "never"]
     command += list(args)
+    flush_output()
     return run(command, **kwargs).returncode
 
 def runBuildx(args, **kwargs):
     command = ['docker', 'buildx']
     command += list(args)
+    flush_output()
     return run(command, **kwargs).returncode

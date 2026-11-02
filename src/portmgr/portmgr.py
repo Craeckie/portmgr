@@ -7,6 +7,8 @@ import re
 
 import yaml
 
+from portmgr.runlog import RunRecorder, line_buffer_stdout
+
 
 class MyParser(argparse.ArgumentParser):
     def error(self, message):
@@ -241,6 +243,11 @@ def main():
     command_extra.clear()
     command_extra.extend(extra)
 
+    # Line-buffered, so `-> <stack>` lands before that stack's docker output
+    # when stdout is a pipe or a file, as in a cron job.
+    line_buffer_stdout()
+    recorder = RunRecorder()
+
     base_directory = os.path.join(os.getcwd(), base_dir)
 
     # if args.recursive:
@@ -271,23 +278,26 @@ def main():
             exit(1)
 
         failed_list = []
+        skipped_list = []
 
         for action in action_list_sorted:
             origWD = os.getcwd()
             newWD = action['directory']
             os.chdir(newWD)
-            print('-> ' + action["relative"])
-            try:
-                rc = cmd_function(action)
-            except Exception as exc:
-                print('Error: ' + str(exc))
-                rc = 1
-            if rc != 0:
+            rc = recorder.run_action(action, cmd, cmd_function)
+            if rc is None and recorder.stopped:
+                skipped_list.append(action)
+            elif rc != 0:
                 failed_list.append(action)
             os.chdir(origWD)
         if failed_list:
             print('Failed containers:')
             for action in failed_list:
+                print('- ' + action['relative'])
+            print("")
+        if skipped_list:
+            print('Skipped (stop file):')
+            for action in skipped_list:
                 print('- ' + action['relative'])
             print("")
 
