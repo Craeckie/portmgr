@@ -165,9 +165,9 @@ def test_r_builds_and_pushes_from_the_build_file(stack, monkeypatch):
     f = ["-f", ".portmgr-build.yml"]
     assert rec.calls == [
         f + ["build", "--pull", "--force-rm", "--compress", "web"],
-        f + ["push", "--ignore-push-failures", "web"],
+        f + ["push", "--ignore-missing", "web"],
         f + ["build", "--pull", "--force-rm", "--compress", "worker"],
-        f + ["push", "--ignore-push-failures", "worker"],
+        f + ["push", "--ignore-missing", "worker"],
     ]
     assert not (stack / wrapper.BUILD_FILE).exists()
 

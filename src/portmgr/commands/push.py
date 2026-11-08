@@ -54,7 +54,7 @@ def build_and_push(relative, services, files):
                     new_res = runCompose(
                             [*files,
                              'push',
-                             '--ignore-push-failures',
+                             '--ignore-missing',
                              service
                              ]
                             )

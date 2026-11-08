@@ -4,6 +4,9 @@ What changed in each release of portmgr. The section of a version is also the bo
 
 ## [Unreleased]
 
+### Fixed
+- `r` no longer triggers Docker Compose's deprecation warning for `--ignore-push-failures`; it pushes with `--ignore-missing`. A failed push now shows as `Error pushing <service>!` instead of passing silently.
+
 ## [1.15.0] - 2026-11-02
 
 ### Added
