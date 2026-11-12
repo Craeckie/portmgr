@@ -183,6 +183,26 @@ def test_r_bake_uses_the_build_file(stack, monkeypatch):
     assert not (stack / wrapper.BUILD_FILE).exists()
 
 
+def test_r_no_cache_reaches_compose_build_only(stack, monkeypatch):
+    monkeypatch.setattr(push_cmd, "command_extra", ["--no-cache"])
+    rec = Recorder(stack)
+    monkeypatch.setattr(push_cmd, "runCompose", rec)
+    assert push_cmd.func({"relative": "mystack"}) == 0
+    f = ["-f", ".portmgr-build.yml"]
+    assert rec.calls[0] == f + ["build", "--pull", "--no-cache", "--force-rm", "--compress", "web"]
+    assert rec.calls[1] == f + ["push", "--ignore-missing", "web"]
+
+
+def test_r_no_cache_reaches_bake(stack, monkeypatch):
+    monkeypatch.setenv("PORTMGR_MULTI_PLATFORM", "linux/amd64")
+    monkeypatch.setattr(push_cmd, "command_extra", ["--no-cache"])
+    rec = Recorder(stack)
+    monkeypatch.setattr(push_cmd, "runBuildx", rec)
+    assert push_cmd.func({"relative": "mystack"}) == 0
+    assert rec.calls[0] == ["bake", "-f", ".portmgr-build.yml", "--pull", "--no-cache", "--push",
+                            "--set", "*.platform=linux/amd64", "web"]
+
+
 def test_r_cleans_up_when_a_build_raises(stack, monkeypatch):
     def boom(args, **kwargs):
         raise OSError("docker not found")

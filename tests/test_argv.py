@@ -6,6 +6,7 @@ from portmgr.portmgr import ArgvError, HelpRequested, split_argv
 COMMANDS = {c: {} for c in "upsdlabctrvoSMR"}
 COMMANDS["E"] = {"args": True}
 COMMANDS["D"] = {"args": ("--force",)}
+COMMANDS["r"] = {"args": ("--no-cache",)}
 
 
 @pytest.mark.parametrize("argv, expected", [
@@ -23,6 +24,8 @@ COMMANDS["D"] = {"args": ("--force",)}
     ("E -- -u", ("", ["E"], ["-u"])),
     ("D --force", ("", ["D"], ["--force"])),
     ("D", ("", ["D"], [])),
+    ("r --no-cache", ("", ["r"], ["--no-cache"])),
+    ("ur --no-cache", ("", ["u", "r"], ["--no-cache"])),
     ("-B /x u", ("/x", ["u"], [])),
     ("u -B /x", ("/x", ["u"], [])),
     ("-B /x E pass", ("/x", ["E"], ["pass"])),

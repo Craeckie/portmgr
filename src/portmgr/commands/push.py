@@ -1,4 +1,4 @@
-from portmgr import command_list, runCompose, runBuildx
+from portmgr import command_list, command_extra, runCompose, runBuildx
 import subprocess
 import os
 
@@ -9,11 +9,15 @@ from portmgr.wrapper import buildFile
 def func(action):
     with buildFile() as (services, files):
         action['images'] = service_images(services)
-        return build_and_push(action['relative'], services, files)
+        return build_and_push(action['relative'], services, files,
+                              no_cache='--no-cache' in command_extra)
 
 
-def build_and_push(relative, services, files):
+def build_and_push(relative, services, files, no_cache=False):
     print('Services to build: ' + ', '.join(services))
+    # --pull refreshes FROM, but a cached `RUN apk add` / `apt-get install` layer survives until
+    # the base digest changes; --no-cache rebuilds every layer to pick up distro-package fixes.
+    cache_flag = ['--no-cache'] if no_cache else []
 
     res = 0
     for service in services.keys():
@@ -26,6 +30,7 @@ def build_and_push(relative, services, files):
                     ['bake',
                      *files,
                      '--pull',
+                     *cache_flag,
                      '--push',
                      '--set', f'*.platform={multi_platform}',
                      service
@@ -42,6 +47,7 @@ def build_and_push(relative, services, files):
                         [*files,
                          'build',
                          '--pull',
+                         *cache_flag,
                          '--force-rm',
                          '--compress',
                          service
@@ -79,5 +85,6 @@ def build_and_push(relative, services, files):
 command_list['r'] = {
     'hlp': 'build, push to registry & remove image',
     'ord': 'nrm',
-    'fnc': func
+    'fnc': func,
+    'args': ('--no-cache',),
 }

@@ -4,6 +4,11 @@ What changed in each release of portmgr. The section of a version is also the bo
 
 ## [Unreleased]
 
+## [1.16.0] - 2026-11-12
+
+### Added
+- `r --no-cache` rebuilds every layer (`compose build --no-cache`, `buildx bake --no-cache`). `--pull` alone refreshes `FROM` but keeps a cached `RUN apt-get install` layer, so distro-package security fixes in a locally built image can lag until the base image changes.
+
 ### Fixed
 - `r` no longer triggers Docker Compose's deprecation warning for `--ignore-push-failures`; it pushes with `--ignore-missing`. A failed push now shows as `Error pushing <service>!` instead of passing silently.
 
