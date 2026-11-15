@@ -4,6 +4,11 @@ What changed in each release of portmgr. The section of a version is also the bo
 
 ## [Unreleased]
 
+## [1.16.1] - 2026-11-16
+
+### Fixed
+- `r` and `b` failed with `service "…" refers to undefined build secret …: invalid compose project` for a service with `build.secrets`: the build file now carries the top-level `secrets:` entries the builds use (and only those).
+
 ## [1.16.0] - 2026-11-12
 
 ### Added

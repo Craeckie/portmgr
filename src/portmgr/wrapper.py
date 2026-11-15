@@ -88,10 +88,29 @@ def getBuildServices(directory='.'):
     return _buildServices(data)
 
 
-def writeBuildFile(services, name=None, directory='.'):
-    """Write BUILD_FILE with only `services` (and the project `name`); return its path."""
+def _buildSecrets(services, data):
+    """The top-level `secrets:` entries that the services' `build.secrets` name."""
+    defined = data.get('secrets') or {}
+    if not isinstance(defined, dict):
+        return {}
+    names = []
+    for service in services.values():
+        build = service.get('build')
+        refs = build.get('secrets') if isinstance(build, dict) else None
+        for ref in refs if isinstance(refs, list) else []:
+            name = ref.get('source') if isinstance(ref, dict) else ref
+            if name in defined and name not in names:
+                names.append(name)
+    return {name: defined[name] for name in names}
+
+
+def writeBuildFile(services, name=None, directory='.', secrets=None):
+    """Write BUILD_FILE with only `services`, the project `name` and the
+    top-level `secrets` their builds use; return its path."""
     content = {'name': name} if name else {}
     content['services'] = services
+    if secrets:
+        content['secrets'] = secrets
     path = os.path.join(directory, BUILD_FILE)
     with open(path, 'w') as stream:
         yaml.safe_dump(content, stream, sort_keys=False)
@@ -111,7 +130,8 @@ def buildFile(directory='.'):
         yield getServices(includeOnlyBuildable=True), []
         return
     services = _buildServices(data)
-    path = writeBuildFile(services, data.get('name'), directory)
+    path = writeBuildFile(services, data.get('name'), directory,
+                          _buildSecrets(services, data))
     try:
         yield services, ['-f', BUILD_FILE]
     finally:

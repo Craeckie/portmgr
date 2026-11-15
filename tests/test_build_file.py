@@ -260,3 +260,46 @@ def test_compose_accepts_the_build_file_where_the_full_file_fails(stack):
     web = config["services"]["web"]["build"]
     assert web["context"] == str(stack / "web")
     assert web["additional_contexts"]["assets"] == str(stack.parent / "assets")
+
+
+def test_build_file_keeps_the_secrets_its_builds_use(stack):
+    (stack / "docker-compose.yml").write_text(textwrap.dedent("""
+        services:
+          a:
+            build:
+              context: https://git.example/repo.git#main
+              secrets:
+                - GIT_AUTH_TOKEN.git.example
+            secrets: [runtime_key]
+          b:
+            build:
+              context: .
+              secrets:
+                - source: npmrc
+                  target: npm
+          c:
+            image: nginx
+            secrets: [other]
+        secrets:
+          GIT_AUTH_TOKEN.git.example:
+            file: ../_includes/gitea-token
+          npmrc:
+            environment: NPMRC
+          runtime_key:
+            file: ./runtime_key
+          other:
+            file: ./other
+    """).lstrip())
+    with wrapper.buildFile():
+        written = yaml.safe_load((stack / wrapper.BUILD_FILE).read_text())
+    assert written["secrets"] == {
+        "GIT_AUTH_TOKEN.git.example": {"file": "../_includes/gitea-token"},
+        "npmrc": {"environment": "NPMRC"},
+    }
+    assert "secrets" not in written["services"]["a"]
+
+
+def test_build_file_without_build_secrets_has_no_secrets(stack):
+    with wrapper.buildFile():
+        written = yaml.safe_load((stack / wrapper.BUILD_FILE).read_text())
+    assert "secrets" not in written
