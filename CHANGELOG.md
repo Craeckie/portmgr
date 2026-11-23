@@ -4,6 +4,16 @@ What changed in each release of portmgr. The section of a version is also the bo
 
 ## [Unreleased]
 
+## [1.17.0] - 2026-11-23
+
+### Added
+- `r`'s build timeout is configurable: `PORTMGR_BUILD_TIMEOUT` sets the default (still 20 minutes when unset), and a service's `x-portmgr-build-timeout` overrides it. Both take seconds or a duration such as `60m` or `1h30m`.
+
+### Fixed
+- `r` reported a stack as successful when a service failed to build or timed out but a later service in the same stack built fine.
+- `r` with `PORTMGR_MULTI_PLATFORM` reported a timed-out build as successful.
+- A timed-out build now says how long it ran: `Build timed out after 1h00m.`
+
 ## [1.16.1] - 2026-11-16
 
 ### Fixed

@@ -65,6 +65,16 @@ Commands are read the way `tar` reads its options: `dul`, `-dul`, `-d -u -l` and
 ### Building images
 `b` and `r` read the `build`, `image` and `platform` of every service that has its own `build:` straight from the compose file and run `docker compose -f .portmgr-build.yml build` (`r` also `push`, or `docker buildx bake` with `PORTMGR_MULTI_PLATFORM`) on a temporary file holding only those keys, removed afterwards. A host that only builds images doesn't need the stack's `.env`, sealed `extends` files or anything else the rest of the compose file refers to. Services with `profiles:` are built only when `COMPOSE_PROFILES` names one of them.
 
+`r` stops a build after 20 minutes. `PORTMGR_BUILD_TIMEOUT` changes that default, and a service can set its own with the compose extension key `x-portmgr-build-timeout` (Compose itself ignores `x-` keys, and portmgr leaves it out of the build file). Both take seconds or a duration such as `90s`, `60m` or `1h30m`; an invalid value is reported and ignored. A timed-out build prints `Error building <service>! Build timed out after 1h00m.` and fails the stack.
+
+```yaml
+services:
+  main:
+    image: registry.example/app
+    build: https://github.com/example/app.git#v1.2.3
+    x-portmgr-build-timeout: 60m
+```
+
 ### Unattended runs (cron)
 portmgr's stdout is line-buffered and flushed before every subprocess, so each `-> <stack>` line comes before that stack's output also when stdout is a pipe or a file. Three environment variables help a script that runs portmgr unattended; without them nothing changes:
 

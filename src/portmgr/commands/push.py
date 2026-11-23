@@ -2,8 +2,8 @@ from portmgr import command_list, command_extra, runCompose, runBuildx
 import subprocess
 import os
 
-from portmgr.runlog import flush_output, service_images
-from portmgr.wrapper import buildFile
+from portmgr.runlog import flush_output, format_duration, service_images
+from portmgr.wrapper import buildFile, build_timeout
 
 
 def func(action):
@@ -22,6 +22,8 @@ def build_and_push(relative, services, files, no_cache=False):
     res = 0
     for service in services.keys():
         print(f"\nBuilding {service}")
+        timeout = build_timeout(service, services[service])
+        timed_out = f"Error building {service}! Build timed out after {format_duration(timeout)}."
 
         new_res = 2
         if multi_platform := os.environ.get("PORTMGR_MULTI_PLATFORM", "").lower():
@@ -34,13 +36,14 @@ def build_and_push(relative, services, files, no_cache=False):
                      '--push',
                      '--set', f'*.platform={multi_platform}',
                      service
-                     ], timeout=1200 #kill after 20mins
+                     ], timeout=timeout
                 )
                 if new_res != 0:
                     res = new_res
                     print(f"Error building {service}!")
             except subprocess.TimeoutExpired:
-                print(f"Error building {service}! Build timed out.")
+                res = new_res
+                print(timed_out)
         else:
             try:
                 new_res = runCompose(
@@ -51,7 +54,7 @@ def build_and_push(relative, services, files, no_cache=False):
                          '--force-rm',
                          '--compress',
                          service
-                         ], timeout=1200
+                         ], timeout=timeout
                         )
                 if new_res != 0:
                     res = new_res
@@ -67,8 +70,8 @@ def build_and_push(relative, services, files, no_cache=False):
                     if new_res != 0:
                         print(f"Error pushing {service}!")
             except subprocess.TimeoutExpired:
-                print(f"Error building {service}! Build timed out.")
-            if new_res != 1:
+                print(timed_out)
+            if new_res not in (0, 1):  # a failed push (1) is reported above, not counted
                 res = new_res
         if os.environ.get("PORTMGR_CLEAN_AFTER_PUSH", "").lower() == "true":
             flush_output()

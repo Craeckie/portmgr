@@ -303,3 +303,124 @@ def test_build_file_without_build_secrets_has_no_secrets(stack):
     with wrapper.buildFile():
         written = yaml.safe_load((stack / wrapper.BUILD_FILE).read_text())
     assert "secrets" not in written
+
+
+# --- build timeout: PORTMGR_BUILD_TIMEOUT and the per-service x-portmgr-build-timeout ---
+
+TIMEOUT_STACK = textwrap.dedent("""
+    services:
+      slow:
+        build: ./slow
+        image: registry.example/slow
+        x-portmgr-build-timeout: 60m
+      fast:
+        build: ./fast
+        image: registry.example/fast
+""").lstrip()
+
+
+class TimeoutRecorder:
+    """Records (args, timeout) of every call; raises TimeoutExpired for the named services."""
+    def __init__(self, expire=()):
+        self.calls = []
+        self.expire = expire
+
+    def __call__(self, args, **kwargs):
+        self.calls.append((list(args), kwargs.get("timeout")))
+        if args[-1] in self.expire and kwargs.get("timeout"):
+            raise subprocess.TimeoutExpired(args, kwargs["timeout"])
+        return 0
+
+    def builds(self):
+        return {args[-1]: timeout for args, timeout in self.calls
+                if "build" in args or "bake" in args}
+
+
+@pytest.fixture
+def timeout_stack(stack, monkeypatch):
+    (stack / "docker-compose.yml").write_text(TIMEOUT_STACK)
+    monkeypatch.delenv("PORTMGR_BUILD_TIMEOUT", raising=False)
+    return stack
+
+
+@pytest.mark.parametrize("value, seconds", [
+    ("3600", 3600), (3600, 3600), ("90s", 90), ("60m", 3600), ("1h", 3600),
+    ("1h30m", 5400), (" 2h ", 7200), ("1h0m30s", 3630),
+])
+def test_parse_duration(value, seconds):
+    assert wrapper.parse_duration(value) == seconds
+
+
+@pytest.mark.parametrize("value", ["", "0", "0m", "-5", "abc", "60x", "m", None, True, 1.5])
+def test_parse_duration_rejects(value):
+    assert wrapper.parse_duration(value) is None
+
+
+def test_timeout_key_kept_for_r_but_not_written(timeout_stack):
+    with wrapper.buildFile() as (services, _):
+        assert services["slow"]["x-portmgr-build-timeout"] == "60m"
+        written = yaml.safe_load((timeout_stack / wrapper.BUILD_FILE).read_text())
+    assert written["services"]["slow"] == {"build": "./slow", "image": "registry.example/slow"}
+
+
+def test_r_default_timeout_is_20_minutes_and_a_service_can_raise_it(timeout_stack, monkeypatch):
+    rec = TimeoutRecorder()
+    monkeypatch.setattr(push_cmd, "runCompose", rec)
+    assert push_cmd.func({"relative": "s"}) == 0
+    assert rec.builds() == {"slow": 3600, "fast": 1200}
+    # the push isn't limited
+    assert [t for args, t in rec.calls if "push" in args] == [None, None]
+
+
+def test_r_env_sets_the_default_and_the_service_still_wins(timeout_stack, monkeypatch):
+    monkeypatch.setenv("PORTMGR_BUILD_TIMEOUT", "90m")
+    rec = TimeoutRecorder()
+    monkeypatch.setattr(push_cmd, "runCompose", rec)
+    push_cmd.func({"relative": "s"})
+    assert rec.builds() == {"slow": 3600, "fast": 5400}
+
+
+def test_r_bake_gets_the_timeout_too(timeout_stack, monkeypatch):
+    monkeypatch.setenv("PORTMGR_MULTI_PLATFORM", "linux/arm64")
+    rec = TimeoutRecorder()
+    monkeypatch.setattr(push_cmd, "runBuildx", rec)
+    push_cmd.func({"relative": "s"})
+    assert rec.builds() == {"slow": 3600, "fast": 1200}
+
+
+def test_r_invalid_timeout_warns_and_uses_the_default(timeout_stack, monkeypatch, capsys):
+    (timeout_stack / "docker-compose.yml").write_text(
+        TIMEOUT_STACK.replace("60m", "an hour"))
+    monkeypatch.setenv("PORTMGR_BUILD_TIMEOUT", "soon")
+    rec = TimeoutRecorder()
+    monkeypatch.setattr(push_cmd, "runCompose", rec)
+    push_cmd.func({"relative": "s"})
+    assert rec.builds() == {"slow": 1200, "fast": 1200}
+    out = capsys.readouterr().out
+    assert "PORTMGR_BUILD_TIMEOUT" in out and "soon" in out
+    assert "x-portmgr-build-timeout" in out and "an hour" in out
+
+
+def test_r_timed_out_build_says_after_how_long_and_fails(timeout_stack, monkeypatch, capsys):
+    rec = TimeoutRecorder(expire=("slow",))
+    monkeypatch.setattr(push_cmd, "runCompose", rec)
+    assert push_cmd.func({"relative": "s"}) != 0
+    out = capsys.readouterr().out
+    # Registry-Updater's report.py matches on "Build timed out"
+    assert "Error building slow! Build timed out after 1h00m." in out
+    # the next service is still built and pushed
+    assert (["push", "--ignore-missing", "fast"], None) in [
+        (args[-3:], t) for args, t in rec.calls]
+
+
+def test_r_a_later_successful_service_keeps_the_stack_failed(stack, monkeypatch):
+    def first_fails(args, **kwargs):
+        return 1 if args[-2:] == ["--compress", "web"] else 0
+    monkeypatch.setattr(push_cmd, "runCompose", first_fails)
+    assert push_cmd.func({"relative": "mystack"}) == 1
+
+
+def test_r_bake_timeout_fails_the_stack(timeout_stack, monkeypatch):
+    monkeypatch.setenv("PORTMGR_MULTI_PLATFORM", "linux/arm64")
+    monkeypatch.setattr(push_cmd, "runBuildx", TimeoutRecorder(expire=("slow",)))
+    assert push_cmd.func({"relative": "s"}) != 0

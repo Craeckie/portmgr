@@ -1,5 +1,6 @@
 import json
 import os
+import re
 from contextlib import contextmanager
 from subprocess import run, check_output
 
@@ -11,6 +12,44 @@ from portmgr.runlog import flush_output
 # relative paths, .env and the project name resolve as they do for the original.
 BUILD_FILE = '.portmgr-build.yml'
 BUILD_KEYS = ('build', 'image', 'platform')
+# per-service build timeout for `r`; read by portmgr, never written to the build file
+TIMEOUT_KEY = 'x-portmgr-build-timeout'
+DEFAULT_BUILD_TIMEOUT = 1200
+_DURATION = re.compile(r'(?:(\d+)h)?(?:(\d+)m)?(?:(\d+)s)?')
+
+
+def parse_duration(value):
+    """Seconds from `3600`, `90s`, `60m`, `1h30m`; None unless it is a positive duration."""
+    if isinstance(value, bool):
+        return None
+    if isinstance(value, int):
+        return value if value > 0 else None
+    if not isinstance(value, str):
+        return None
+    text = value.strip()
+    if text.isdigit():
+        seconds = int(text)
+    else:
+        match = _DURATION.fullmatch(text)
+        if not text or not match:
+            return None
+        h, m, s = (int(g or 0) for g in match.groups())
+        seconds = h * 3600 + m * 60 + s
+    return seconds if seconds > 0 else None
+
+
+def build_timeout(name, service):
+    """The build timeout of one service in seconds: its TIMEOUT_KEY, else
+    PORTMGR_BUILD_TIMEOUT, else 20 minutes. An invalid value is reported and skipped."""
+    for source, value in ((f'{name}: {TIMEOUT_KEY}', service.get(TIMEOUT_KEY)),
+                          ('PORTMGR_BUILD_TIMEOUT', os.environ.get('PORTMGR_BUILD_TIMEOUT'))):
+        if value is None or value == '':
+            continue
+        seconds = parse_duration(value)
+        if seconds is not None:
+            return seconds
+        print(f'Warning: {source}={value!r} is not a duration (e.g. 3600, 60m, 1h30m), ignored')
+    return DEFAULT_BUILD_TIMEOUT
 
 
 class _Reset:
@@ -73,7 +112,7 @@ def _buildServices(data):
         profiles = service.get('profiles') or []
         if profiles and '*' not in active and not active.intersection(profiles):
             continue
-        services[name] = {key: service[key] for key in BUILD_KEYS
+        services[name] = {key: service[key] for key in (*BUILD_KEYS, TIMEOUT_KEY)
                           if key in service and not isinstance(service[key], _Reset)}
     return services
 
@@ -108,7 +147,8 @@ def writeBuildFile(services, name=None, directory='.', secrets=None):
     """Write BUILD_FILE with only `services`, the project `name` and the
     top-level `secrets` their builds use; return its path."""
     content = {'name': name} if name else {}
-    content['services'] = services
+    content['services'] = {svc: {k: v for k, v in values.items() if not k.startswith('x-')}
+                           for svc, values in services.items()}
     if secrets:
         content['secrets'] = secrets
     path = os.path.join(directory, BUILD_FILE)
